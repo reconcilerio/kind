@@ -111,7 +111,7 @@ jobs:
     
     - name: Check for existing ${{ matrix.arch }} node image
       id: node_image_check
-      run: crane digest ghcr.io/${{ github.repository }}/node/${{ matrix.arch }}:${{ env.kubernetes-version }}-${{ env.kind-version }}
+      run: crane digest ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-${{ matrix.arch }}
       continue-on-error: true
     - name: Build kind ${{ matrix.arch }} node image
       if: steps.node_image_check.outcome == 'failure'
@@ -119,8 +119,9 @@ jobs:
         kind build node-image ./kubernetes \
           --arch ${{ matrix.arch }} \
           --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
-          --image ghcr.io/${{ github.repository }}/node/${{ matrix.arch }}:${{ env.kubernetes-version }}-${{ env.kind-version }} \
+          --image ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-${{ matrix.arch }} \
           --type release
+        docker push ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-${{ matrix.arch }}
 
   publish:
     name: Publish images
@@ -158,8 +159,8 @@ jobs:
       if: steps.node_image_check.outcome == 'failure'
       run: |
         crane index append \
-          -m ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
-          -m ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
+          -m ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-amd64 \
+          -m ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-arm64 \
           -t ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}
     - name: Vanity tags
       if: steps.node_image_check.outcome == 'failure'
