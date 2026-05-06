@@ -36,7 +36,7 @@ jobs:
         path: ggcr
         ref: ${{ env.ggcr-version }}
     - name: Build crane
-      run: go build ./cmd/crane && mv crane /usr/local/bin  && which crane && crane --version
+      run: go build ./cmd/crane && mv crane /usr/local/bin  && which crane && crane version
       working-directory: ggcr
 
     - name: Login to GitHub Container Registry
@@ -99,7 +99,7 @@ jobs:
       run: go build . && mv kind /usr/local/bin && which kind && kind --version
       working-directory: kind
     - name: Build crane
-      run: go build ./cmd/crane && mv crane /usr/local/bin  && which crane && crane --version
+      run: go build ./cmd/crane && mv crane /usr/local/bin  && which crane && crane version
       working-directory: ggcr
 
     - name: Login to GitHub Container Registry
@@ -140,7 +140,7 @@ jobs:
       with:
         cache-dependency-path: '**/go.sum'
     - name: Build crane
-      run: go build ./cmd/crane && mv crane /usr/local/bin && which crane && crane --version
+      run: go build ./cmd/crane && mv crane /usr/local/bin && which crane && crane version
       working-directory: ggcr
 
     - name: Login to GitHub Container Registry
