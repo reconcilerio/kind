@@ -78,7 +78,7 @@ jobs:
       if: steps.node_amd64_image_check.outcome == 'failure'
       run: |
         kind build node-image ./kubernetes \
-          --arch linux/amd64 \
+          --arch amd64 \
           --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
           --image ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
           --type release
@@ -91,7 +91,7 @@ jobs:
       if: steps.node_arm64_image_check.outcome == 'failure'
       run: |
         kind build node-image ./kubernetes \
-          --arch linux/arm64 \
+          --arch arm64 \
           --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
           --image ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
           --type release
