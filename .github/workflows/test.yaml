@@ -11,14 +11,10 @@ on:
   pull_request: {}
 
 env:
-  kind:
-    version: v0.31.0
-  cloud-provider-kind:
-    version: v0.10.0
-  kubernetes:
-    version: v1.36.0
-  ggcr:
-    version: v0.25.0
+  kind-version: v0.31.0
+  cloud-provider-kind-version: v0.10.0
+  kubernetes-version: v1.36.0
+  ggcr-version: v0.25.0
   registry: registry.local
 
 jobs:
@@ -91,22 +87,22 @@ jobs:
       with:
         repository: kubernetes-sigs/kind
         path: kind
-        ref: ${{ env.kind.version }}
+        ref: ${{ env.kind-version }}
     - uses: actions/checkout@v6
       with:
         repository: kubernetes-sigs/cloud-provider-kind
         path: cloud-provider-kind
-        ref: ${{ env.cloud-provider-kind.version }}
+        ref: ${{ env.cloud-provider-kind-version }}
     - uses: actions/checkout@v6
       with:
         repository: kubernetes/kubernetes
         path: kubernetes
-        ref: ${{ env.kubernetes.version }}
+        ref: ${{ env.kubernetes-version }}
     - uses: actions/checkout@v6
       with:
         repository: google/go-containerregistry
         path: ggcr
-        ref: ${{ env.ggcr.version }}
+        ref: ${{ env.ggcr-version }}
     - uses: actions/setup-go@v6
       with:
         go-version-file: kind/.go-version
