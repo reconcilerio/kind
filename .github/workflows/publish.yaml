@@ -29,6 +29,15 @@ jobs:
         repository: kubernetes-sigs/kind
         path: kind
         ref: ${{ env.kind-version }}
+    - name: Checkout ggcr ${{ env.ggcr-version }}
+      uses: actions/checkout@v6
+      with:
+        repository: google/go-containerregistry
+        path: ggcr
+        ref: ${{ env.ggcr-version }}
+    - name: Build crane
+      run: go build ./cmd/crane && mv crane /usr/local/bin  && which crane && crane --version
+      working-directory: ggcr
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v4
