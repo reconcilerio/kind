@@ -15,75 +15,15 @@ env:
   cloud-provider-kind-version: v0.10.0
   kubernetes-version: v1.36.0
   ggcr-version: v0.21.5
-  registry: registry.local
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
-    - uses: actions/checkout@v6
-    - name: Generate certs
-      run: |
-        set -o errexit
-        set -o nounset
-        set -o pipefail
-
-        CERT_DIR=$(mktemp -d -t certs.XXXX)
-        echo "CERT_DIR=$CERT_DIR" >> $GITHUB_ENV
-
-        echo "##[group]Install cfssl"
-          curl -L https://github.com/cloudflare/cfssl/releases/download/v1.6.5/cfssl_1.6.5_linux_amd64 -o cfssl
-          curl -L https://github.com/cloudflare/cfssl/releases/download/v1.6.5/cfssljson_1.6.5_linux_amd64 -o cfssljson
-          chmod +x cfssl*
-          sudo mv cfssl* /usr/local/bin
-        echo "##[endgroup]"
-
-        echo "##[group]Generate CA"
-          cfssl gencert -initca .github/tls/root-csr.json \
-            | cfssljson -bare ${CERT_DIR}/root-ca
-          cfssl gencert -ca ${CERT_DIR}/root-ca.pem -ca-key ${CERT_DIR}/root-ca-key.pem \
-            -config=".github/tls/config.json" \
-            -profile="intermediate" .github/tls/intermediate-csr.json \
-            | cfssljson -bare ${CERT_DIR}/signing-ca
-          cat ${CERT_DIR}/signing-ca.pem ${CERT_DIR}/root-ca.pem > ${CERT_DIR}/ca.pem
-        echo "##[endgroup]"
-        echo "##[group]Install CA"
-          # https://ubuntu.com/server/docs/security-trust-store
-          sudo apt-get install -y ca-certificates
-          sudo cp ${CERT_DIR}/ca.pem /usr/local/share/ca-certificates/ca.crt
-          sudo update-ca-certificates
-        echo "##[endgroup]"
-
-        echo "##[group]Generate cert"
-          cfssl gencert -ca ${CERT_DIR}/signing-ca.pem -ca-key ${CERT_DIR}/signing-ca-key.pem \
-            -config=".github/tls/config.json" \
-            -profile="server" \
-            -hostname="${{ env.registry }}" \
-            .github/tls/server-csr.json \
-            | cfssljson -bare ${CERT_DIR}/server
-        echo "##[endgroup]"
-
-    - name: Setup local registry
-      run: |
-        set -o errexit
-        set -o nounset
-        set -o pipefail
-
-        # Run a registry.
-        docker run -d \
-          --restart=always \
-          --name registry \
-          -v ${CERT_DIR}:/certs \
-          -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
-          -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/server.pem \
-          -e REGISTRY_HTTP_TLS_KEY=/certs/server-key.pem \
-          -p "443:443" \
-          registry:2
-
-        # Add registry to DNS locally
-        echo "$(hostname -I | cut -d' ' -f1) ${{ env.registry }}" | sudo tee -a /etc/hosts
-
     - name: Checkout kind ${{ env.kind-version }}
       uses: actions/checkout@v6
       with:
@@ -121,19 +61,22 @@ jobs:
     - name: Build crane
       run: go build ./cmd/crane && mv crane /usr/local/bin
       working-directory: ggcr
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build kind base-image
       run: make push
       env:
-        IMAGE: ${{ env.registry }}/kind/base
+        IMAGE: ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
       working-directory: kind/images/base
     - name: Build kind node-image amd64
-      run: kind build node-image ./kubernetes --arch linux/amd64 --base-image ${{ env.registry }}/kind/base --image ${{ env.registry }}/kind/node/amd64 --release
+      run: kind build node-image ./kubernetes --arch linux/amd64 --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} --image ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }} --release
     - name: Build kind node-image arm64
-      run: kind build node-image ./kubernetes --arch linux/arm64 --base-image ${{ env.registry }}/kind/base --image ${{ env.registry }}/kind/node/arm64 --release
+      run: kind build node-image ./kubernetes --arch linux/arm64 --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} --image ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }} --release
     - name: Build kind node-image
-      run: crane index append -m ${{ env.registry }}/kind/node/amd64 -m ${{ env.registry }}/kind/node/arm64 -t ${{ env.registry }}/kind/node
-    - run: crane ${{ env.registry }}/kind/node kind-node.tar
-    - uses: actions/upload-artifact@v7
-      with:
-        path: kind-node.tar
-        archive: false
+      run: crane index append -m ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }} -m ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }} -t ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}
+    - run: crane ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }} kind-node.tar
