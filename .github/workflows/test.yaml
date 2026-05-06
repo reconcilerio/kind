@@ -12,7 +12,6 @@ on:
 
 env:
   kind-version: v0.31.0
-  cloud-provider-kind-version: v0.10.0
   kubernetes-version: v1.36.0
   ggcr-version: v0.21.5
 
@@ -30,12 +29,6 @@ jobs:
         repository: kubernetes-sigs/kind
         path: kind
         ref: ${{ env.kind-version }}
-    - name: Checkout cloud-provider-kind ${{ env.cloud-provider-kind-version }}
-      uses: actions/checkout@v6
-      with:
-        repository: kubernetes-sigs/cloud-provider-kind
-        path: cloud-provider-kind
-        ref: ${{ env.cloud-provider-kind-version }}
     - name: Checkout kubernetes ${{ env.kubernetes-version }}
       uses: actions/checkout@v6
       with:
@@ -55,9 +48,6 @@ jobs:
     - name: Build kind
       run: go build . && mv kind /usr/local/bin
       working-directory: kind
-    - name: Build cloud-provider-kind
-      run: go build . && mv cloud-provider-kind /usr/local/bin
-      working-directory: cloud-provider-kind
     - name: Build crane
       run: go build ./cmd/crane && mv crane /usr/local/bin
       working-directory: ggcr
