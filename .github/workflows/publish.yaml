@@ -1,4 +1,4 @@
-name: Test
+name: Publish
 
 on:
   push:
@@ -16,9 +16,50 @@ env:
   ggcr-version: v0.21.5
 
 jobs:
-  test:
-    name: Test
+  base:
+    name: Base image
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+    - name: Checkout kind ${{ env.kind-version }}
+      uses: actions/checkout@v6
+      with:
+        repository: kubernetes-sigs/kind
+        path: kind
+        ref: ${{ env.kind-version }}
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Check for existing base image
+      id: base_image_check
+      run: crane digest ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
+      continue-on-error: true
+    - name: Build kind base image
+      if: steps.base_image_check.outcome == 'failure'
+      run: make push
+      env:
+        IMAGE: ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
+      working-directory: kind/images/base
+
+  node:
+    name: Node image
+    needs: base
+    strategy:
+      matrix:
+        include:
+        - arch: amd64
+          os: ubuntu-24.04
+        - arch: arm64
+          os: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write
       packages: write
@@ -46,10 +87,10 @@ jobs:
         go-version-file: ./kind/.go-version
         cache-dependency-path: '**/go.sum'
     - name: Build kind
-      run: go build . && mv kind /usr/local/bin
+      run: go build . && mv kind /usr/local/bin && which kind && kind --version
       working-directory: kind
     - name: Build crane
-      run: go build ./cmd/crane && mv crane /usr/local/bin
+      run: go build ./cmd/crane && mv crane /usr/local/bin  && which crane && crane --version
       working-directory: ggcr
 
     - name: Login to GitHub Container Registry
@@ -59,42 +100,46 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Check for existing base image
-      id: base_image_check
-      run: crane digest ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
+    - name: Check for existing ${{ matrix.arch }} node image
+      id: node_image_check
+      run: crane digest ghcr.io/${{ github.repository }}/node/${{ matrix.arch }}:${{ env.kubernetes-version }}-${{ env.kind-version }}
       continue-on-error: true
-    - name: Build kind base image
-      if: steps.base_image_check.outcome == 'failure'
-      run: make push
-      env:
-        IMAGE: ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
-      working-directory: kind/images/base
-    
-    - name: Check for existing amd64 node image
-      id: node_amd64_image_check
-      run: crane digest ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }}
-      continue-on-error: true
-    - name: Build kind amd64 node image
-      if: steps.node_amd64_image_check.outcome == 'failure'
+    - name: Build kind ${{ matrix.arch }} node image
+      if: steps.node_image_check.outcome == 'failure'
       run: |
         kind build node-image ./kubernetes \
-          --arch amd64 \
+          --arch ${{ matrix.arch }} \
           --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
-          --image ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
+          --image ghcr.io/${{ github.repository }}/node/${{ matrix.arch }}:${{ env.kubernetes-version }}-${{ env.kind-version }} \
           --type release
 
-    - name: Check for existing arm64 node image
-      id: node_arm64_image_check
-      run: crane digest ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }}
-      continue-on-error: true
-    - name: Build kind arm64 node image
-      if: steps.node_arm64_image_check.outcome == 'failure'
-      run: |
-        kind build node-image ./kubernetes \
-          --arch arm64 \
-          --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
-          --image ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
-          --type release
+  publish:
+    name: Publish images
+    needs: node 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+    - name: Checkout ggcr ${{ env.ggcr-version }}
+      uses: actions/checkout@v6
+      with:
+        repository: google/go-containerregistry
+        path: ggcr
+        ref: ${{ env.ggcr-version }}
+    - uses: actions/setup-go@v6
+      with:
+        cache-dependency-path: '**/go.sum'
+    - name: Build crane
+      run: go build ./cmd/crane && mv crane /usr/local/bin && which crane && crane --version
+      working-directory: ggcr
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Check for existing node image
       id: node_image_check
@@ -107,8 +152,8 @@ jobs:
           -m ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
           -m ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
           -t ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}
-
     - name: Vanity tags
+      if: steps.node_image_check.outcome == 'failure'
       run: |
         crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}
         crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ghcr.io/${{ github.repository }}/node:$( ${kubernetes-version} | cut -d'.' -f1-2 )
