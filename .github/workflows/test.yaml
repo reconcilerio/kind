@@ -113,13 +113,13 @@ jobs:
         go-version-file: ./kind/.go-version
         cache-dependency-path: '**/go.sum'
     - name: Build kind
-      run: go build . -o ../kind && mv ../kind /usr/local/bin
+      run: go build . && mv kind /usr/local/bin
       working-directory: kind
     - name: Build cloud-provider-kind
-      run: go build . -o ../cloud-provider-kind && mv ../cloud-provider-kind /usr/local/bin
+      run: go build . && mv cloud-provider-kind /usr/local/bin
       working-directory: cloud-provider-kind
     - name: Build crane
-      run: go build ./cmd/crane -o ../crane && mv ../crane /usr/local/bin
+      run: go build ./cmd/crane && mv crane /usr/local/bin
       working-directory: ggcr
     - name: Build kind base-image
       run: make push
