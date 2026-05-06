@@ -58,20 +58,56 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Check for existing base-image
+    
+    - name: Check for existing base image
       id: base_image_check
       run: crane digest ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
       continue-on-error: true
-    - name: Build kind base-image
+    - name: Build kind base image
       if: steps.base_image_check.outcome == 'failure'
       run: make push
       env:
         IMAGE: ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
       working-directory: kind/images/base
-    - name: Build kind node-image amd64
-      run: kind build node-image ./kubernetes --arch linux/amd64 --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} --image ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }} --release
-    - name: Build kind node-image arm64
-      run: kind build node-image ./kubernetes --arch linux/arm64 --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} --image ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }} --release
-    - name: Build kind node-image
-      run: crane index append -m ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }} -m ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }} -t ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}
-    - run: crane ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }} kind-node.tar
+    
+    - name: Check for existing amd64 node image
+      id: node_amd64_image_check
+      run: crane digest ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }}
+      continue-on-error: true
+    - name: Build kind amd64 node image
+      if: steps.node_amd64_image_check.outcome == 'failure'
+      run: |
+        kind build node-image ./kubernetes \
+          --arch linux/amd64 \
+          --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
+          --image ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
+          --type release
+
+    - name: Check for existing arm64 node image
+      id: node_arm64_image_check
+      run: crane digest ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }}
+      continue-on-error: true
+    - name: Build kind arm64 node image
+      if: steps.node_arm64_image_check.outcome == 'failure'
+      run: |
+        kind build node-image ./kubernetes \
+          --arch linux/arm64 --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
+          --image ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
+          --type release
+    
+    - name: Check for existing node image
+      id: node_image_check
+      run: crane digest ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}
+      continue-on-error: true
+    - name: Assemble kind node image
+      if: steps.node_image_check.outcome == 'failure'
+      run: |
+        crane index append \
+          -m ghcr.io/${{ github.repository }}/node/amd64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
+          -m ghcr.io/${{ github.repository }}/node/arm64:${{ env.kubernetes-version }}-${{ env.kind-version }} \
+          -t ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}
+
+    - name: Vanity tags
+      run: |
+        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}
+        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ghcr.io/${{ github.repository }}/node:$( ${kubernetes-version} | cut -d'.' -f1-2 )
