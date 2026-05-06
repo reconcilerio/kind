@@ -68,7 +68,12 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check for existing base-image
+      id: base_image_check
+      run: crane digest ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
+      continue-on-error: true
     - name: Build kind base-image
+      if: steps.base_image_check.outcome == 'failure'
       run: make push
       env:
         IMAGE: ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
