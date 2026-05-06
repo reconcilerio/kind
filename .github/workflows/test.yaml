@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Generate certs
-       run: |
+      run: |
         set -o errexit
         set -o nounset
         set -o pipefail
