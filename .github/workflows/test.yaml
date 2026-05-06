@@ -14,7 +14,7 @@ env:
   kind-version: v0.31.0
   cloud-provider-kind-version: v0.10.0
   kubernetes-version: v1.36.0
-  ggcr-version: v0.25.0
+  ggcr-version: v0.21.5
   registry: registry.local
 
 jobs:
@@ -84,22 +84,26 @@ jobs:
         # Add registry to DNS locally
         echo "$(hostname -I | cut -d' ' -f1) ${{ env.registry }}" | sudo tee -a /etc/hosts
 
-    - uses: actions/checkout@v6
+    - name: Checkout kind ${{ env.kind-version }}
+      uses: actions/checkout@v6
       with:
         repository: kubernetes-sigs/kind
         path: kind
         ref: ${{ env.kind-version }}
-    - uses: actions/checkout@v6
+    - name: Checkout cloud-provider-kind ${{ env.cloud-provider-kind-version }}
+      uses: actions/checkout@v6
       with:
         repository: kubernetes-sigs/cloud-provider-kind
         path: cloud-provider-kind
         ref: ${{ env.cloud-provider-kind-version }}
-    - uses: actions/checkout@v6
+    - name: Checkout kubernetes ${{ env.kubernetes-version }}
+      uses: actions/checkout@v6
       with:
         repository: kubernetes/kubernetes
         path: kubernetes
         ref: ${{ env.kubernetes-version }}
-    - uses: actions/checkout@v6
+    - name: Checkout ggcr ${{ env.ggcr-version }}
+      uses: actions/checkout@v6
       with:
         repository: google/go-containerregistry
         path: ggcr
@@ -108,16 +112,23 @@ jobs:
       with:
         go-version-file: kind/.go-version
         cache-dependency-path: '**/go.sum'
-    - run: go build ./kind && mv kind /usr/local/bin/
-    - run: go build ./cloud-provider-kind && mv cloud-provider-kind /usr/local/bin/
-    - run: go build ./ggcr/cmd/crane && mv crane /usr/local/bin/
-    - run: make push
+    - name: Build kind
+      run: go build ./kind && mv kind /usr/local/bin/
+    - name: Build cloud-provider-kind
+      run: go build ./cloud-provider-kind && mv cloud-provider-kind /usr/local/bin/
+    - name: Build crane
+      run: go build ./ggcr/cmd/crane && mv crane /usr/local/bin/
+    - name: Build kind base-image
+      run: make push
       env:
         IMAGE: ${{ env.registry }}/kind/base
       working-directory: kind/images/base
-    - run: kind build node-image ./kubernetes --arch linux/amd64 --base-image ${{ env.registry }}/kind/base --image ${{ env.registry }}/kind/node/amd64 --release
-    - run: kind build node-image ./kubernetes --arch linux/arm64 --base-image ${{ env.registry }}/kind/base --image ${{ env.registry }}/kind/node/arm64 --release
-    - run: crane index append -m ${{ env.registry }}/kind/node/amd64 -m ${{ env.registry }}/kind/node/arm64 -t ${{ env.registry }}/kind/node
+    - name: Build kind node-image amd64
+      run: kind build node-image ./kubernetes --arch linux/amd64 --base-image ${{ env.registry }}/kind/base --image ${{ env.registry }}/kind/node/amd64 --release
+    - name: Build kind node-image arm64
+      run: kind build node-image ./kubernetes --arch linux/arm64 --base-image ${{ env.registry }}/kind/base --image ${{ env.registry }}/kind/node/arm64 --release
+    - name: Build kind node-image
+      run: crane index append -m ${{ env.registry }}/kind/node/amd64 -m ${{ env.registry }}/kind/node/arm64 -t ${{ env.registry }}/kind/node
     - run: crane ${{ env.registry }}/kind/node kind-node.tar
     - uses: actions/upload-artifact@v7
       with:
