@@ -138,4 +138,4 @@ jobs:
       if: steps.node_image_check.outcome == 'failure'
       run: |
         crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ${{ env.kubernetes-version }}
-        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} $( ${kubernetes-version} | cut -d'.' -f1-2 )
+        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} $( echo "${kubernetes-version}" | cut -d'.' -f1-2 )
