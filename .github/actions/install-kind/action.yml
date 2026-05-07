@@ -1,0 +1,51 @@
+name: "install-kind"
+description: "Installs kind"
+inputs:
+  version:
+    description: version to install
+    default: latest
+    required: true
+runs:
+  using: "composite"
+  steps:
+  - name: Download kind
+    id: download-kind
+    run: |
+      set -o errexit
+      set -o nounset
+      set -o pipefail
+
+      version="${{ inputs.version }}"
+      os="$(go env GOOS)"
+      arch="$(go env GOARCH)"
+
+      if [[ "$version" == "latest" ]]; then
+        version=$(curl -s https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq -r .tag_name)
+      fi
+
+      curl --fail -Lo kind https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}
+      chmod +x kind
+      mv kind /usr/bin/local
+    shell: bash
+    continue-on-error: true
+  - name: Build kind, if unable to download
+    if: steps.download-kind.outcome == 'failure'
+    run: |
+      set -o errexit
+      set -o nounset
+      set -o pipefail
+
+      go install sigs.kubernetes.io/kind@${{ inputs.version }}
+      cp $(go env GOPATH)/bin/kind /usr/local/bin
+    shell: bash
+    env:
+      GOTOOLCHAIN: auto
+  - name: kind version
+    run: |
+      set -o errexit
+      set -o nounset
+      set -o pipefail
+
+      echo "installed to: $(which kind)"
+      echo "kind version: $(kind --version)"
+    shell: bash
