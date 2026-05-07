@@ -137,5 +137,5 @@ jobs:
     - name: Vanity tags
       if: steps.node_image_check.outcome == 'failure'
       run: |
-        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}
-        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ghcr.io/${{ github.repository }}/node:$( ${kubernetes-version} | cut -d'.' -f1-2 )
+        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ${{ env.kubernetes-version }}
+        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} $( ${kubernetes-version} | cut -d'.' -f1-2 )
