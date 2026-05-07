@@ -25,7 +25,7 @@ runs:
 
       curl --fail -Lo kind https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}
       chmod +x kind
-      mv kind /usr/bin/local
+      mv kind /usr/local/bin
     shell: bash
     continue-on-error: true
   - name: Build kind, if unable to download
