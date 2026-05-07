@@ -22,7 +22,7 @@ runs:
       if [[ "${version}" == "latest" ]]; then
         version=$(curl -s https://api.github.com/repos/google/go-containerregistry/releases/latest | jq -r .tag_name)
       fi
-      if [[ "${arch}" == "arch64" ]]; then
+      if [[ "${arch}" == "aarch64" ]]; then
         arch=arm64
       fi
 
