@@ -23,6 +23,7 @@ runs:
         version=$(curl -s https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq -r .tag_name)
       fi
 
+      echo "Downloading https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}"
       curl --fail -Lo kind https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}
       chmod +x kind
       mv kind /usr/local/bin

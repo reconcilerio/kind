@@ -104,8 +104,8 @@ jobs:
           --type release
         docker push ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-${{ matrix.arch }}
 
-  publish:
-    name: Publish images
+  assemble:
+    name: Assemble images
     needs: node
     runs-on: ubuntu-latest
     permissions:
@@ -123,19 +123,13 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Check for existing node image
-      id: node_image_check
-      run: crane digest ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}
-      continue-on-error: true
     - name: Assemble kind node image
-      if: steps.node_image_check.outcome == 'failure'
       run: |
         crane index append \
           -m ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-amd64 \
           -m ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-arm64 \
           -t ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}
     - name: Vanity tags
-      if: steps.node_image_check.outcome == 'failure'
       run: |
         crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ${{ env.kubernetes-version }}
         crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} $( echo "${kubernetes-version}" | cut -d'.' -f1-2 )

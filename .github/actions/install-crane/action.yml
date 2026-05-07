@@ -23,6 +23,7 @@ runs:
         version=$(curl -s https://api.github.com/repos/google/go-containerregistry/releases/latest | jq -r .tag_name)
       fi
 
+      echo "Downloading https://github.com/google/go-containerregistry/releases/download/${version}/go-containerregistry_${os}_${arch}.tar.gz"
       curl --fail -L https://github.com/google/go-containerregistry/releases/download/${version}/go-containerregistry_${os}_${arch}.tar.gz \
         | tar -xzf - crane
       mv crane /usr/local/bin
