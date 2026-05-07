@@ -18,9 +18,13 @@ jobs:
     - name: Resolve kind version
       id: kind
       run: echo "version=$(go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "$GITHUB_OUTPUT"
+      env:
+        GOTOOLCHAIN: auto
     - name: Resolve kubernetes version
       id: kubernetes
-      run: echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl)" | tee -a "$GITHUB_OUTPUT"
+      run: echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+      env:
+        GOTOOLCHAIN: auto
 
   build:
     name: Build
