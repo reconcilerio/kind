@@ -2,7 +2,7 @@ name: "install-crane"
 description: "Installs crane"
 inputs:
   version:
-    description: version to install
+    description: crane version to install
     default: latest
     required: true
 runs:

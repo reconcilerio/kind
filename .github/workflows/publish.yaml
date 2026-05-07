@@ -1,22 +1,26 @@
 name: Publish
 
 on:
-  push:
-    branches:
-    - '**'
-    - '!dependabot/**'
-    tags:
-    # semver tags
-    - 'v[0-9]+\.[0-9]+\.[0-9]+-?**'
-  pull_request: {}
+  workflow_dispatch:
+    inputs: &workflow-inputs
+      kind-version:
+        description: kind version to use
+        required: true
+        type: string
+      kubernetes-version:
+        description: kubernetes version to use
+        required: true
+        type: string
+  workflow_call:
+    inputs: *workflow-inputs
 
-env:
-  kind-version: v0.31.0
-  kubernetes-version: v1.36.0
+concurrency:
+  group: ${{ github.workflow }}
+  queue: max
 
 jobs:
   base:
-    name: Base image
+    name: Build base image
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -35,25 +39,25 @@ jobs:
 
     - name: Check for existing base image
       id: base_image_check
-      run: crane digest ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
+      run: crane digest ghcr.io/${{ github.repository }}/base:${{ inputs.kind-version }}
       continue-on-error: true
 
-    - name: Checkout kind ${{ env.kind-version }}
+    - name: Checkout kind ${{ inputs.kind-version }}
       if: steps.base_image_check.outcome == 'failure'
       uses: actions/checkout@v6
       with:
         repository: kubernetes-sigs/kind
         path: kind
-        ref: ${{ env.kind-version }}
+        ref: ${{ inputs.kind-version }}
     - name: Build kind base image
       if: steps.base_image_check.outcome == 'failure'
       run: make push
       env:
-        IMAGE: ghcr.io/${{ github.repository }}/base:${{ env.kind-version }}
+        IMAGE: ghcr.io/${{ github.repository }}/base:${{ inputs.kind-version }}
       working-directory: kind/images/base
 
   node:
-    name: Node image
+    name: Build node image
     needs: base
     strategy:
       matrix:
@@ -73,7 +77,7 @@ jobs:
     - name: Install kind
       uses: ./.github/actions/install-kind
       with:
-        version: ${{ env.kind-version }}
+        version: ${{ inputs.kind-version }}
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v4
@@ -84,25 +88,25 @@ jobs:
 
     - name: Check for existing ${{ matrix.arch }} node image
       id: node_image_check
-      run: crane digest ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-${{ matrix.arch }}
+      run: crane digest ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }}-${{ matrix.arch }}
       continue-on-error: true
 
-    - name: Checkout kubernetes ${{ env.kubernetes-version }}
+    - name: Checkout kubernetes ${{ inputs.kubernetes-version }}
       if: steps.node_image_check.outcome == 'failure'
       uses: actions/checkout@v6
       with:
         repository: kubernetes/kubernetes
         path: kubernetes
-        ref: ${{ env.kubernetes-version }}
+        ref: ${{ inputs.kubernetes-version }}
     - name: Build kind ${{ matrix.arch }} node image
       if: steps.node_image_check.outcome == 'failure'
       run: |
         kind build node-image ./kubernetes \
           --arch ${{ matrix.arch }} \
-          --base-image ghcr.io/${{ github.repository }}/base:${{ env.kind-version }} \
-          --image ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-${{ matrix.arch }} \
+          --base-image ghcr.io/${{ github.repository }}/base:${{ inputs.kind-version }} \
+          --image ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }}-${{ matrix.arch }} \
           --type release
-        docker push ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-${{ matrix.arch }}
+        docker push ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }}-${{ matrix.arch }}
 
   assemble:
     name: Assemble images
@@ -123,13 +127,13 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Assemble kind node image
+    - name: Assemble node image index
       run: |
         crane index append \
-          -m ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-amd64 \
-          -m ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}-arm64 \
-          -t ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }}
+          -m ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }}-amd64 \
+          -m ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }}-arm64 \
+          -t ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }}
     - name: Vanity tags
       run: |
-        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} ${{ env.kubernetes-version }}
-        crane tag ghcr.io/${{ github.repository }}/node:${{ env.kubernetes-version }}-${{ env.kind-version }} $( echo "${{ env.kubernetes-version }}" | cut -d'.' -f1-2 )
+        crane tag ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }} ${{ inputs.kubernetes-version }}
+        crane tag ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }} $( echo "${{ inputs.kubernetes-version }}" | cut -d'.' -f1-2 )

@@ -2,7 +2,7 @@ name: "install-kind"
 description: "Installs kind"
 inputs:
   version:
-    description: version to install
+    description: kind version to install
     default: latest
     required: true
 runs:

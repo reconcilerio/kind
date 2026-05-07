@@ -1,0 +1,35 @@
+name: Push
+
+on:
+  push:
+    branches:
+    - '**'
+    - '!dependabot/**'
+
+jobs:
+  prep:
+    name: Resolve versions to build
+    runs-on: ubuntu-latest
+    outputs:
+      kind-version: ${{ steps.kind.outputs.version }}
+      kubernetes-version: ${{ steps.kubernetes.outputs.version }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Resolve kind version
+      id: kind
+      run: echo "version=$(go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "$GITHUB_OUTPUT"
+    - name: Resolve kubernetes version
+      id: kubernetes
+      run: echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl)" | tee -a "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    permissions:
+      contents: write
+      packages: write
+    needs: prep
+    uses: ./.github/workflows/publish.yaml
+    with:
+      kind-version: ${{ needs.prep.outputs.kind-version }}
+      kubernetes-version: ${{ needs.prep.outputs.kind-version }}
+    secrets: inherit
