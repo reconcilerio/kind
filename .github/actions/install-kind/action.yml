@@ -19,12 +19,14 @@ runs:
       os="$(go env GOOS)"
       arch="$(go env GOARCH)"
 
-      if [[ "$version" == "latest" ]]; then
+      if [[ "${version}" == "latest" ]]; then
         version=$(curl -s https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq -r .tag_name)
       fi
 
-      echo "Downloading https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}"
-      curl --fail -Lo kind https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}
+      url="https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-${os}-${arch}"
+
+      echo "Downloading ${url}"
+      curl --fail -Lo kind "${url}"
       chmod +x kind
       mv kind /usr/local/bin
     shell: bash
@@ -47,6 +49,6 @@ runs:
       set -o nounset
       set -o pipefail
 
-      echo "installed to: $(which kind)"
-      echo "kind version: $(kind --version)"
+      echo "installed to: $( which kind )"
+      echo "kind version: $( kind --version )"
     shell: bash
