@@ -24,7 +24,7 @@ runs:
       fi
 
       curl --fail -L https://github.com/google/go-containerregistry/releases/download/${version}/go-containerregistry_${os}_${arch}.tar.gz \
-        | tar -xf - crane
+        | tar -xzf - crane
       mv crane /usr/bin/local
     shell: bash
     continue-on-error: true
