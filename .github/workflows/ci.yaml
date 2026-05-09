@@ -4,9 +4,6 @@ on:
   push:
     branches:
     - '**'
-    tags:
-    # semver tags
-    - 'v[0-9]+(\.[0-9]+\.[0-9]+-?**)?'
   pull_request: {}
 
 jobs:
