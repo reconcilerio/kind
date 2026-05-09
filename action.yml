@@ -20,7 +20,7 @@ runs:
 
         version="${{ inputs.kind-version }}"
         if [[ "${version}" == "" ]] ; then
-          version="$(GOTOOLCHAIN=auto go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)"
+          version="$(sed -n 's:require sigs.k8s.io/kind ::p' hack/kind/go.mod)"
         fi
         echo "version=${version}" >> "${GITHUB_OUTPUT}"
       shell: bash
@@ -31,7 +31,7 @@ runs:
 
         version="${{ inputs.kubernetes-version }}"
         if [[ "${version}" == "" ]] ; then
-          version=":$(GOTOOLCHAIN=auto go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl)"
+          version=":$(sed -n 's:require k8s.io/kubectl ::p' hack/kubernetes/go.mod | sed s/^v0\./v1\./)"
         fi
         if [[ "${version}" = ":"* ]] ; then
           version="ghcr.io/scothis/kind/node${version}"
