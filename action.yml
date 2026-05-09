@@ -46,4 +46,4 @@ runs:
       uses: ./.github/actions/with-post-step
       with:
         main: kind create cluster --image "${{ steps.kubernetes-version.outputs.version }}"
-        post: kind destroy cluster
+        post: kind delete cluster
