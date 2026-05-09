@@ -11,9 +11,7 @@ runs:
   - name: Download crane
     id: download-crane
     run: |
-      set -o errexit
-      set -o nounset
-      set -o pipefail
+      set -euo pipefail
 
       version="${{ inputs.version }}"
       os="$(uname)"
@@ -37,9 +35,7 @@ runs:
   - name: Build crane, if unavailable to download
     if: steps.download-crane.outcome == 'failure'
     run: |
-      set -o errexit
-      set -o nounset
-      set -o pipefail
+      set -euo pipefail
 
       go install github.com/google/go-containerregistry/cmd/crane@${{ inputs.version }}
       cp $(go env GOPATH)/bin/crane /usr/local/bin
@@ -48,9 +44,7 @@ runs:
       GOTOOLCHAIN: auto
   - name: crane version
     run: |
-      set -o errexit
-      set -o nounset
-      set -o pipefail
+      set -euo pipefail
 
       echo "installed to: $( which crane )"
       echo "crane version: $( crane version )"

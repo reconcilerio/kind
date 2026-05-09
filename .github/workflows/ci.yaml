@@ -41,3 +41,29 @@ jobs:
       kind-version: ${{ needs.prep.outputs.kind-version }}
       kubernetes-version: ${{ needs.prep.outputs.kubernetes-version }}
     secrets: inherit
+
+  test:
+    name: Test
+    needs: build
+    if: needs.build.result == 'success' || needs.build.result == 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: KinD cluster
+      uses: ./
+    - name: Cluster info
+      run: |
+        set -euo pipefail
+
+        echo "##[group]kubectl cluster-info"
+          kubectl cluster-info
+        echo "##[endgroup]"
+        echo "##[group]kubectl api-resources"
+          kubectl api-resources
+        echo "##[endgroup]"
+        echo "##[group]kubectl get nodes"
+          kubectl get nodes
+        echo "##[endgroup]"
+        echo "##[group]kubectl describe nodes"
+          kubectl describe nodes
+        echo "##[endgroup]"

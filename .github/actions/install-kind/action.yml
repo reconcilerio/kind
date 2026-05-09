@@ -11,9 +11,7 @@ runs:
   - name: Download kind
     id: download-kind
     run: |
-      set -o errexit
-      set -o nounset
-      set -o pipefail
+      set -euo pipefail
 
       version="${{ inputs.version }}"
       os="$(go env GOOS)"
@@ -34,9 +32,7 @@ runs:
   - name: Build kind, if unable to download
     if: steps.download-kind.outcome == 'failure'
     run: |
-      set -o errexit
-      set -o nounset
-      set -o pipefail
+      set -euo pipefail
 
       go install sigs.kubernetes.io/kind@${{ inputs.version }}
       cp $(go env GOPATH)/bin/kind /usr/local/bin
@@ -45,9 +41,7 @@ runs:
       GOTOOLCHAIN: auto
   - name: kind version
     run: |
-      set -o errexit
-      set -o nounset
-      set -o pipefail
+      set -euo pipefail
 
       echo "installed to: $( which kind )"
       echo "kind version: $( kind --version )"
