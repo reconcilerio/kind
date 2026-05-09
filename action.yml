@@ -1,0 +1,49 @@
+name: KinD cluster
+description: Run a Kubernetes cluster in Docker
+branding:
+  icon: refresh-cw
+  color: green
+inputs:
+  kind-version:
+    description: Version of kind to use.
+    type: string
+  kubernetes-version:
+    description: Version of Kubernetes to use. Resolves to a tag for the Kubernetes node image in the ghcr.io/scothis/kind/node repository. May also be specified as a fully qualified image.
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve kind version
+      id: kind-version
+      run: |
+        set -euo pipefail
+
+        version="${{ inputs.kind-version }}"
+        if [[ "${version}" == "" ]] ; then
+          version="$(GOTOOLCHAIN=auto go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)"
+        fi
+        echo "version=${version}" >> "${GITHUB_OUTPUT}"
+      shell: bash
+    - name: Resolve kubernetes version
+      id: kubernetes-version
+      run: |
+        set -euo pipefail
+
+        version="${{ inputs.kubernetes-version }}"
+        if [[ "${version}" == "" ]] ; then
+          version=":$(GOTOOLCHAIN=auto go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl)"
+        fi
+        if [[ "${version}" = ":"* ]] ; then
+          version="ghcr.io/scothis/kind/node${version}"
+        fi
+        echo "version=${version}" >> "${GITHUB_OUTPUT}"
+      shell: bash
+    - name: Install kind
+      uses: ./.github/actions/install-kind
+      with:
+        version: ${{ steps.kind-version.outputs.version }}
+    - name: Cluster
+      uses: ./.github/actions/with-post-step
+      with:
+        main: kind create cluster --image "${{ steps.kubernetes-version.outputs.version }}"
+        post: kind destroy cluster
