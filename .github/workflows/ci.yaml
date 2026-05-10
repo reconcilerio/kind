@@ -65,7 +65,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Install crane
-      uses: ./.github/actions/install-crane
+      uses: reconcilerio/install-crane-action@v1
     - name: OCI registry
       id: registry
       if: matrix.registry
