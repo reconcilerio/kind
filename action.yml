@@ -33,8 +33,8 @@ runs:
         if [[ "${version}" == "" ]] ; then
           version=":$(sed -n 's:require k8s.io/kubectl ::p' hack/kubernetes/go.mod | sed s/^v0\./v1\./)"
         fi
-        if [[ "${version}" = ":"* ]] ; then
-          version="ghcr.io/scothis/kind/node${version}"
+        if [[ "${version}" != != *[/;]* ]] ; then
+          version="ghcr.io/scothis/kind/node:${version}"
         fi
         echo "version=${version}" >> "${GITHUB_OUTPUT}"
       shell: bash
