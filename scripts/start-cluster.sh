@@ -48,6 +48,7 @@ EOF
       docker exec "${node}" mkdir -p "/etc/containerd/certs.d/${registry}"
       docker cp "${cert_dir}/hosts.toml" "${node}:/etc/containerd/certs.d/${registry}/hosts.toml"
       docker cp "${cert_dir}/ca.pem" "${node}:/etc/containerd/certs.d/${registry}/ca.pem"
+      docker exec "${node}" systemctl restart containerd
     done
   fi
 
