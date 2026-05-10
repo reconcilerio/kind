@@ -21,7 +21,8 @@ server = "https://${registry:-localhost}"
 
 [host."https://${registry:-localhost}"]
     capabilities = ["pull"]
-    ca = "/etc/containerd/certs.d/${registry:-localhost}/ca.pem"
+    #ca = "/etc/containerd/certs.d/${registry:-localhost}/ca.pem"
+    skip_verify = true
 EOF
 echo "##[group]Using hosts"
   cat "${cert_dir}/hosts.toml"
