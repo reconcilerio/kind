@@ -8,24 +8,27 @@ registry="${3}"
 registry_ca="${4}"
 
 work_dir="${RUNNER_TEMP}/scothis/kind/${name}"
+cert_dir="${work_dir}/certs"
 if [ -d  "${work_dir}" ] ; then
     echo "::error title=duplicate kind cluster::another cluster with the name \"${name}\" appears to be in use"
     exit 1
 fi
-mkdir -p "${work_dir}"
+mkdir -p "${cert_dir}"
 
 if [[ "${registry_ca}" != "" ]] ; then
   cp "${registry_ca}" "${work_dir}/ca.pem"
-  docker build \
-    -f $(dirname "$0")/Dockerfile \
-    --build-arg name="${name}" \
-    --build-arg registry="${registry}" \
-    --build-arg image="${image}" \
-    --build-arg ca="ca.pem" \
-    -t "${image}-with-ca" \
-    "${work_dir}"
-  image="${image}-with-ca"
+else
+  touch "${cert_dir}/ca.pem"
 fi
+
+# define containerd host config for registry
+cat <<EOF > ${cert_dir}/hosts.toml
+server = "https://${registry:-localhost}"
+
+[host."https://${registry:-localhost}"]
+    capabilities = ["pull"]
+    ca = "/etc/containerd/certs.d/${registry:-localhost}/ca.pem"
+EOF
 
 cat <<EOF > "${work_dir}/kind.yaml"
 kind: Cluster
@@ -38,9 +41,12 @@ containerdConfigPatches:
 nodes:
 - role: control-plane
   image: "${image}"
+extraMounts:
+- containerPath: /etc/containerd/certs.d/${registry:-localhost}
+  hostPath: ${cert_dir}
 EOF
 
-kind create cluster --name "${name}" --image "${image}" --wait 5m
+kind create cluster --config "${work_dir}/kind.yaml" --wait 5m
 
 if [[ "${registry}" != "" ]] ; then
   # Document the local registry
