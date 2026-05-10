@@ -20,9 +20,8 @@ cat <<EOF > "${cert_dir}/hosts.toml"
 server = "https://${registry:-localhost}"
 
 [host."https://${registry:-localhost}"]
-    capabilities = ["pull"]
-    #ca = "/etc/containerd/certs.d/${registry:-localhost}/ca.pem"
-    skip_verify = true
+    capabilities = ["pull", "resolve"]
+    ca = "/etc/containerd/certs.d/${registry:-localhost}/ca.pem"
 EOF
 echo "##[group]Using hosts"
   cat "${cert_dir}/hosts.toml"
