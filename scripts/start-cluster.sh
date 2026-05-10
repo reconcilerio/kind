@@ -45,7 +45,9 @@ EOF
 
     # copy cert to each node
     for node in "$(kind get nodes --name "${name}")" ; do
-      docker cp "${cert_dir}" "${name}-control-plane:/etc/containerd/certs.d/${registry}"
+      docker exec "${node}" mkdir -p "/etc/containerd/certs.d/${registry}"
+      docker cp "${cert_dir}" "${node}:/etc/containerd/certs.d/${registry}"
+      docker cp "${node}:/etc/containerd/certs.d/${registry}/hosts.toml" -
     done
   fi
 
