@@ -19,6 +19,7 @@ if [[ "${registry_ca}" != "" ]] ; then
   docker build \
     -f $(dirname "$0")/Dockerfile \
     --build-arg name="${name}" \
+    --build-arg registry="${registry}" \
     --build-arg image="${image}" \
     --build-arg ca="ca.pem" \
     -t "${image}-with-ca" \
