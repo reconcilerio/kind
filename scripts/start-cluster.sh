@@ -13,28 +13,36 @@ if [ -d  "${work_dir}" ] ; then
     echo "::error title=duplicate kind cluster::another cluster with the name \"${name}\" appears to be in use"
     exit 1
 fi
-mkdir -p "${cert_dir}"
 
-# define containerd host config for registry
-cat <<EOF > "${cert_dir}/hosts.toml"
-server = "https://${registry:-localhost}"
+if [[ "${registry}" != "" ]] ; then
+  mkdir -p "${cert_dir}"
 
-[host."https://${registry:-localhost}"]
+  if [[ "${registry_ca}" != "" ]] ; then
+    cp "${registry_ca}" "${cert_dir}/ca.pem"
+    echo "##[group]Using CA"
+      cat "${cert_dir}/ca.pem"
+    echo "##[endgroup]"
+  else
+    touch "${cert_dir}/ca.pem"
+  fi
+
+  # define containerd host config for registry
+  cat <<EOF > "${cert_dir}/hosts.toml"
+server = "https://${registry}"
+
+[host."https://${registry}"]
     capabilities = ["pull", "resolve"]
-    ca = "/etc/containerd/certs.d/${registry:-localhost}/ca.pem"
 EOF
-echo "##[group]Using hosts"
-  cat "${cert_dir}/hosts.toml"
-echo "##[endgroup]"
+  if [[ "${registry_ca}" != "" ]] ; then
+    cat <<EOF > "${cert_dir}/hosts.toml"
+    ca = "/etc/containerd/certs.d/${registry}/ca.pem"
+EOF
+  fi
 
-if [[ "${registry_ca}" != "" ]] ; then
-  cp "${registry_ca}" "${cert_dir}/ca.pem"
-else
-  touch "${cert_dir}/ca.pem"
+  echo "##[group]Using hosts"
+    cat "${cert_dir}/hosts.toml"
+  echo "##[endgroup]"
 fi
-echo "##[group]Using CA"
-  cat "${cert_dir}/ca.pem"
-echo "##[endgroup]"
 
 cat <<EOF > "${work_dir}/kind.yaml"
 kind: Cluster
@@ -47,10 +55,14 @@ containerdConfigPatches:
 nodes:
 - role: control-plane
   image: "${image}"
+EOF
+if [[ "${registry_ca}" != "" ]] ; then
+  cat <<EOF > "${work_dir}/kind.yaml"
   extraMounts:
-  - containerPath: /etc/containerd/certs.d/${registry:-localhost}
+  - containerPath: /etc/containerd/certs.d/${registry}
     hostPath: ${cert_dir}
 EOF
+fi
 echo "##[group]Using kind config"
   cat "${work_dir}/kind.yaml"
 echo "##[endgroup]"
