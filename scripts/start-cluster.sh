@@ -8,16 +8,15 @@ registry="${3}"
 registry_ca="${4}"
 
 work_dir="${RUNNER_TEMP}/scothis/kind/${name}"
-cert_dir="${work_dir}/certs"
 if [ -d  "${work_dir}" ] ; then
     echo "::error title=duplicate kind cluster::another cluster with the name \"${name}\" appears to be in use"
     exit 1
 fi
 mkdir -p "${work_dir}"
+cert_dir="${work_dir}/certs"
+mkdir -p "${cert_dir}"
 
 if [[ "${registry}" != "" ]] ; then
-  mkdir -p "${cert_dir}"
-
   if [[ "${registry_ca}" != "" ]] ; then
     cp "${registry_ca}" "${cert_dir}/ca.pem"
     echo "##[group]Using CA"
@@ -35,7 +34,7 @@ server = "https://${registry}"
     capabilities = ["pull", "resolve"]
 EOF
   if [[ "${registry_ca}" != "" ]] ; then
-    cat <<EOF > "${cert_dir}/hosts.toml"
+    cat <<EOF >> "${cert_dir}/hosts.toml"
     ca = "/etc/containerd/certs.d/${registry}/ca.pem"
 EOF
   fi
@@ -58,7 +57,7 @@ nodes:
   image: "${image}"
 EOF
 if [[ "${registry_ca}" != "" ]] ; then
-  cat <<EOF > "${work_dir}/kind.yaml"
+  cat <<EOF >> "${work_dir}/kind.yaml"
   extraMounts:
   - containerPath: /etc/containerd/certs.d/${registry}
     hostPath: ${cert_dir}
