@@ -14,6 +14,18 @@ if [ -d  "${work_dir}" ] ; then
 fi
 mkdir -p "${work_dir}"
 
+if [[ "${registry_ca}" != "" ]] ; then
+  cp "${registry_ca}" "${work_dir}/ca.pem"
+  docker build \
+    -f $(dirname "$0")/Dockerfile \
+    --build-arg name="${name}" \
+    --build-arg image="${image}" \
+    --build-arg ca="ca.pem" \
+    -t "${image}-with-ca" \
+    "${work_dir}"
+  image="${image}-with-ca"
+fi
+
 cat <<EOF > "${work_dir}/kind.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -27,32 +39,9 @@ nodes:
   image: "${image}"
 EOF
 
-kind create cluster --config "${work_dir}/kind.yaml" --wait 5m
+kind create cluster --name "${name}" --image "${image}" --wait 5m
 
 if [[ "${registry}" != "" ]] ; then
-  if [[ "${registry_ca}" != "" ]] ; then
-    cert_dir="${work_dir}/certs"
-    mkdir -p "${cert_dir}"
-
-    cp "${registry_ca}" "${cert_dir}/ca.pem"
-    cat <<EOF > "${cert_dir}/hosts.toml"
-server = "https://${registry}"
-
-[host."https://${registry}"]
-  capabilities = ["pull"]
-  ca = "/etc/containerd/certs.d/${registry}/ca.pem"
-EOF
-
-    # copy cert to each node
-    for node in "$(kind get nodes --name "${name}")" ; do
-      docker exec "${node}" mkdir -p "/etc/containerd/certs.d/${registry}"
-      docker cp "${cert_dir}/hosts.toml" "${node}:/etc/containerd/certs.d/${registry}/hosts.toml"
-      docker cp "${cert_dir}/ca.pem" "${node}:/etc/containerd/certs.d/${registry}/ca.pem"
-      docker exec "${node}" systemctl restart containerd
-      docker exec "${node}" systemctl restart kubelet
-    done
-  fi
-
   # Document the local registry
   # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
   cat <<EOF | kubectl apply -f -
