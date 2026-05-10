@@ -52,23 +52,32 @@ jobs:
         include:
         - name: defaults
         - name: k8s v1.36
-          with:
+          kind:
             kubernetes-version: v1.36
         - name: k8s v1.35
-          with:
+          kind:
             kubernetes-version: v1.35
         - name: k8s v1.34
-          with:
+          kind:
             kubernetes-version: v1.34
         - name: k8s v1.33
-          with:
-           kubernetes-version: v1.33
+          kind:
+            kubernetes-version: v1.33
+        - name: with local registry
+          registry: {}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
+    - name: Install crane
+      uses: ./.github/actions/install-crane
+    - name: OCI registry
+      id: registry
+      if: matrix.registry
+      uses: reconcilerio/registry@v1
+      with: ${{ matrix.registry || fromJson('{}') }}
     - name: KinD cluster
       uses: ./
-      with: ${{ matrix.with || fromJSON('{}') }}
+      with: ${{ matrix.kind || fromJSON('{}') }}
     - name: Cluster info
       run: |
         set -euo pipefail
@@ -84,4 +93,20 @@ jobs:
         echo "##[endgroup]"
         echo "##[group]kubectl describe nodes"
           kubectl describe nodes
+        echo "##[endgroup]"
+    - name: Run a pod
+      run: |
+        set -euo pipefail
+
+        image="busybox"
+        registry="${{ steps.registry.outputs.registry }}"
+        if [[ "${registry}" != "" ]] ; then
+          echo "##[group]copy image into local registry"
+            crane copy "${image}" "${registry}/test/${image}"
+            image="${registry}/test/${image}"
+          echo "##[endgroup]"
+        fi
+
+        echo "##[group]run image"
+          kubectl run get-env --image="${image}" -it --rm --restart=Never -- env
         echo "##[endgroup]"
