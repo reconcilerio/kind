@@ -51,15 +51,15 @@ jobs:
       matrix:
         include:
         - name: defaults
-        - name: k8s v1.36
+        - name: k8s-v1.36
           kubernetes-version: v1.36
-        - name: k8s v1.35
+        - name: k8s-v1.35
           kubernetes-version: v1.35
-        - name: k8s v1.34
+        - name: k8s-v1.34
           kubernetes-version: v1.34
-        - name: k8s v1.33
+        - name: k8s-v1.33
           kubernetes-version: v1.33
-        - name: with local registry
+        - name: local-registry
           registry: {}
     runs-on: ubuntu-latest
     steps:
@@ -114,5 +114,5 @@ jobs:
         echo "logs-dir=$(kind export logs --name kind)" >> "${GITHUB_OUTPUT}"
     - uses: actions/upload-artifact@v7
       with:
-        name: kind-logs
+        name: kind-logs-${{ matrix.name }}
         path: "${{ steps.test-cluster.outputs.logs-dir }}"
