@@ -10,6 +10,12 @@ inputs:
   kubernetes-version:
     description: Version of Kubernetes to use. Resolves to a tag for the Kubernetes node image in the ghcr.io/scothis/kind/node repository. May also be specified as a fully qualified image.
     type: string
+  registry:
+    description: Custom local registry to trust for the cluster
+    type: string
+  registry-ca:
+    description: Path to PEM encoded certificate authority to trust for the local registry
+    type: string
 runs:
   using: "composite"
   steps:
@@ -46,5 +52,5 @@ runs:
     - name: Cluster
       uses: ./.github/actions/with-post-step
       with:
-        main: kind create cluster --wait 5m --image "${{ steps.kubernetes-version.outputs.version }}"
-        post: kind delete cluster
+        main: ${{ github.action_path }}/scripts/start-cluster.sh "kind" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"
+        post: ${{ github.action_path }}/scripts/stop-cluster.sh "kind"

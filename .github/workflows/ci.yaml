@@ -52,17 +52,13 @@ jobs:
         include:
         - name: defaults
         - name: k8s v1.36
-          kind:
-            kubernetes-version: v1.36
+          kubernetes-version: v1.36
         - name: k8s v1.35
-          kind:
-            kubernetes-version: v1.35
+          kubernetes-version: v1.35
         - name: k8s v1.34
-          kind:
-            kubernetes-version: v1.34
+          kubernetes-version: v1.34
         - name: k8s v1.33
-          kind:
-            kubernetes-version: v1.33
+          kubernetes-version: v1.33
         - name: with local registry
           registry: {}
     runs-on: ubuntu-latest
@@ -73,11 +69,14 @@ jobs:
     - name: OCI registry
       id: registry
       if: matrix.registry
-      uses: scothis/registry@scripts-path
+      uses: reconcilerio/registry@v1
       with: ${{ matrix.registry || fromJson('{}') }}
     - name: KinD cluster
       uses: ./
-      with: ${{ matrix.kind || fromJSON('{}') }}
+      with:
+        kubernetes-version: ${{ matrix.kubernetes-version }}
+        registry: ${{ steps.registry.outputs.registry }}
+        registry-ca: ${{ steps.registry.outputs.tls-ca }}
     - name: Cluster info
       run: |
         set -euo pipefail
