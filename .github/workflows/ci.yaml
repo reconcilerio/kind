@@ -73,7 +73,7 @@ jobs:
     - name: OCI registry
       id: registry
       if: matrix.registry
-      uses: reconcilerio/registry@v1
+      uses: scothis/registry@scripts-path
       with: ${{ matrix.registry || fromJson('{}') }}
     - name: KinD cluster
       uses: ./
