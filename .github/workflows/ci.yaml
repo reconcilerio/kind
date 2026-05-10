@@ -69,7 +69,7 @@ jobs:
     - name: OCI registry
       id: registry
       if: matrix.registry
-      uses: reconcilerio/registry@v1
+      uses: reconcilerio/registry@only-signing-ca
       with: ${{ matrix.registry || fromJson('{}') }}
     - name: KinD cluster
       uses: ./
@@ -115,7 +115,7 @@ jobs:
       if: always()
       run: |
         set -euo pipefail
-        
+
         echo "logs-dir=$(kind export logs --name kind)" >> "${GITHUB_OUTPUT}"
     - uses: actions/upload-artifact@v7
       if: always()
