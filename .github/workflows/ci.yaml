@@ -94,7 +94,6 @@ jobs:
           kubectl describe nodes
         echo "##[endgroup]"
     - name: Run a pod
-      id: test-cluster
       run: |
         set -euo pipefail
 
@@ -111,8 +110,15 @@ jobs:
           kubectl run get-env --image="${image}" -it --restart=Never -- env
         echo "##[endgroup]"
 
+    - name: Collect logs
+      id: cluster-logs
+      if: always()
+      run: |
+        set -euo pipefail
+        
         echo "logs-dir=$(kind export logs --name kind)" >> "${GITHUB_OUTPUT}"
     - uses: actions/upload-artifact@v7
+      if: always()
       with:
         name: kind-logs-${{ matrix.name }}
-        path: "${{ steps.test-cluster.outputs.logs-dir }}"
+        path: "${{ steps.cluster-logs.outputs.logs-dir }}"
