@@ -50,7 +50,7 @@ runs:
       with:
         version: ${{ steps.kind-version.outputs.version }}
     - name: Cluster
-      uses: ./.github/actions/with-post-step
+      uses: reconcilerio/post-step-action@v1
       with:
         main: ${{ github.action_path }}/scripts/start-cluster.sh "kind" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"
         post: ${{ github.action_path }}/scripts/stop-cluster.sh "kind"
