@@ -7,7 +7,7 @@ on:
   pull_request: {}
 
 jobs:
-  prep:
+  build-prep:
     name: Resolve versions to build
     runs-on: ubuntu-latest
     outputs:
@@ -35,11 +35,11 @@ jobs:
     permissions:
       contents: write
       packages: write
-    needs: prep
+    needs: build-prep
     uses: ./.github/workflows/publish.yaml
     with:
-      kind-version: ${{ needs.prep.outputs.kind-version }}
-      kubernetes-version: ${{ needs.prep.outputs.kubernetes-version }}
+      kind-version: ${{ needs.build-prep.outputs.kind-version }}
+      kubernetes-version: ${{ needs.build-prep.outputs.kubernetes-version }}
     secrets: inherit
 
   test:
@@ -47,8 +47,9 @@ jobs:
     needs: build
     if: needs.build.result == 'success' || needs.build.result == 'skipped'
     strategy:
+      fail-fast: false
       matrix:
-        includes:
+        include:
         - name: defaults
         - name: k8s v1.36
           with:
