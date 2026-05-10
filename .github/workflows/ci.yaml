@@ -45,7 +45,7 @@ jobs:
   test:
     name: Test
     needs: build
-    if: needs.build.result == 'success' || needs.build.result == 'skipped'
+    if: always() && (needs.build.result == 'success' || needs.build.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:

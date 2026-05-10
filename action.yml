@@ -46,5 +46,5 @@ runs:
     - name: Cluster
       uses: ./.github/actions/with-post-step
       with:
-        main: kind create cluster --image "${{ steps.kubernetes-version.outputs.version }}"
+        main: kind create cluster --wait 5m --image "${{ steps.kubernetes-version.outputs.version }}"
         post: kind delete cluster
