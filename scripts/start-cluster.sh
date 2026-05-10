@@ -15,20 +15,26 @@ if [ -d  "${work_dir}" ] ; then
 fi
 mkdir -p "${cert_dir}"
 
-if [[ "${registry_ca}" != "" ]] ; then
-  cp "${registry_ca}" "${work_dir}/ca.pem"
-else
-  touch "${cert_dir}/ca.pem"
-fi
-
 # define containerd host config for registry
-cat <<EOF > ${cert_dir}/hosts.toml
+cat <<EOF > "${cert_dir}/hosts.toml"
 server = "https://${registry:-localhost}"
 
 [host."https://${registry:-localhost}"]
     capabilities = ["pull"]
     ca = "/etc/containerd/certs.d/${registry:-localhost}/ca.pem"
 EOF
+echo "##[group]Using hosts"
+  cat "${cert_dir}/hosts.toml"
+echo "##[endgroup]"
+
+if [[ "${registry_ca}" != "" ]] ; then
+  cp "${registry_ca}" "${cert_dir}/ca.pem"
+else
+  touch "${cert_dir}/ca.pem"
+fi
+echo "##[group]Using CA"
+  cat "${cert_dir}/ca.pem"
+echo "##[endgroup]"
 
 cat <<EOF > "${work_dir}/kind.yaml"
 kind: Cluster
@@ -45,8 +51,13 @@ nodes:
   - containerPath: /etc/containerd/certs.d/${registry:-localhost}
     hostPath: ${cert_dir}
 EOF
+echo "##[group]Using kind config"
+  cat "${work_dir}/kind.yaml"
+echo "##[endgroup]"
 
-kind create cluster --config "${work_dir}/kind.yaml" --wait 5m
+echo "##[group]Starting cluster"
+  kind create cluster --config "${work_dir}/kind.yaml" --wait 5m
+echo "##[endgroup]"
 
 if [[ "${registry}" != "" ]] ; then
   # Document the local registry
