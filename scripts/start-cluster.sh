@@ -46,8 +46,8 @@ EOF
     # copy cert to each node
     for node in "$(kind get nodes --name "${name}")" ; do
       docker exec "${node}" mkdir -p "/etc/containerd/certs.d/${registry}"
-      docker cp "${cert_dir}" "${node}:/etc/containerd/certs.d/${registry}"
-      docker cp "${node}:/etc/containerd/certs.d/${registry}/hosts.toml" -
+      docker cp "${cert_dir}/hosts.toml" "${node}:/etc/containerd/certs.d/${registry}/hosts.toml"
+      docker cp "${cert_dir}/ca.pem" "${node}:/etc/containerd/certs.d/${registry}/ca.pem"
     done
   fi
 
