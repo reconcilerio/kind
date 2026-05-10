@@ -46,11 +46,28 @@ jobs:
     name: Test
     needs: build
     if: needs.build.result == 'success' || needs.build.result == 'skipped'
+    strategy:
+      matrix:
+        includes:
+        - name: defaults
+        - name: k8s v1.36
+          with:
+            kubernetes-version: v1.36
+        - name: k8s v1.35
+          with:
+            kubernetes-version: v1.35
+        - name: k8s v1.34
+          with:
+            kubernetes-version: v1.34
+        - name: k8s v1.33
+          with:
+           kubernetes-version: v1.33
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
     - name: KinD cluster
       uses: ./
+      with: ${{ matrix.with || fromJSON('{}') }}
     - name: Cluster info
       run: |
         set -euo pipefail
