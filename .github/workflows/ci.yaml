@@ -60,6 +60,7 @@ jobs:
         - name: k8s-v1.33
           kubernetes-version: v1.33
         - name: local-registry
+          kubernetes-version: kindest/node:v1.35.0
           registry: {}
     runs-on: ubuntu-latest
     steps:
