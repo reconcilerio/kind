@@ -13,6 +13,7 @@ if [ -d  "${work_dir}" ] ; then
     echo "::error title=duplicate kind cluster::another cluster with the name \"${name}\" appears to be in use"
     exit 1
 fi
+mkdir -p "${work_dir}"
 
 if [[ "${registry}" != "" ]] ; then
   mkdir -p "${cert_dir}"
