@@ -41,9 +41,9 @@ containerdConfigPatches:
 nodes:
 - role: control-plane
   image: "${image}"
-extraMounts:
-- containerPath: /etc/containerd/certs.d/${registry:-localhost}
-  hostPath: ${cert_dir}
+  extraMounts:
+  - containerPath: /etc/containerd/certs.d/${registry:-localhost}
+    hostPath: ${cert_dir}
 EOF
 
 kind create cluster --config "${work_dir}/kind.yaml" --wait 5m
