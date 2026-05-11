@@ -26,7 +26,7 @@ runs:
 
         version="${{ inputs.kind-version }}"
         if [[ "${version}" == "" ]] ; then
-          version="$(sed -n 's:require sigs.k8s.io/kind ::p' hack/kind/go.mod)"
+          version="$(sed -n 's:require sigs.k8s.io/kind ::p' "${{ github.action_path }}/hack/kind/go.mod")"
         fi
         echo "version=${version}" >> "${GITHUB_OUTPUT}"
       shell: bash
@@ -37,7 +37,7 @@ runs:
 
         version="${{ inputs.kubernetes-version }}"
         if [[ "${version}" == "" ]] ; then
-          version="$(sed -n 's:require k8s.io/kubectl ::p' hack/kubernetes/go.mod | sed s/^v0\./v1\./)"
+          version="$(sed -n 's:require k8s.io/kubectl ::p' "${{ github.action_path }}/hack/kubernetes/go.mod" | sed s/^v0\./v1\./)"
         fi
         # will fail if there's a node image in the library
         if [[ ! "${version}" =~ [/:@] ]] ; then
