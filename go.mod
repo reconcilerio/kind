@@ -1,1 +1,0 @@
-module reconciler.io/kind

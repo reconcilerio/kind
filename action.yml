@@ -1,4 +1,4 @@
-name: KinD cluster
+name: kind
 description: Run a Kubernetes cluster in Docker
 branding:
   icon: refresh-cw

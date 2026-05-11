@@ -98,7 +98,7 @@ jobs:
       if: matrix.registry
       uses: reconcilerio/registry@v1
       with: ${{ matrix.registry || fromJson('{}') }}
-    - name: KinD cluster
+    - name: kind cluster
       uses: ./
       with:
         kubernetes-version: ${{ matrix.kubernetes-version }}
