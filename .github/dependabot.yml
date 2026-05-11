@@ -4,14 +4,46 @@ updates:
   directory: "/"
   schedule:
     interval: daily
-  open-pull-requests-limit: 10
 - package-ecosystem: gomod
   directory: "/hack/kind"
   schedule:
     interval: daily
-  open-pull-requests-limit: 10
 - package-ecosystem: gomod
   directory: "/hack/kubernetes"
   schedule:
     interval: daily
-  open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.37"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.36"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.35"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.34"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.33"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily

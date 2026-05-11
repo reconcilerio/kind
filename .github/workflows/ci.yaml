@@ -4,7 +4,10 @@ on:
   push:
     branches:
     - '**'
-  pull_request: {}
+  pull_request:
+    branches-ignore:
+      # dependabot changes are tested as branch pushes
+      - 'dependabot/**'
 
 jobs:
   build-prep:
@@ -12,7 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       kind-version: ${{ steps.kind.outputs.version }}
-      kubernetes-version: ${{ steps.kubernetes.outputs.version }}
+      kubernetes: ${{ steps.kubernetes.outputs.version }}
+      kubernetes-1.37: ${{ steps.kubernetes.outputs['1.37'] }}
+      kubernetes-1.36: ${{ steps.kubernetes.outputs['1.36'] }}
+      kubernetes-1.35: ${{ steps.kubernetes.outputs['1.35'] }}
+      kubernetes-1.34: ${{ steps.kubernetes.outputs['1.34'] }}
+      kubernetes-1.33: ${{ steps.kubernetes.outputs['1.33'] }}
     steps:
     - uses: actions/checkout@v6
     - uses: actions/setup-go@v6
@@ -25,7 +33,15 @@ jobs:
         GOTOOLCHAIN: auto
     - name: Resolve kubernetes version
       id: kubernetes
-      run: echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+      run: |
+        set -euo pipefail
+
+        echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+        echo "1.37=$(go list -modfile hack/kubernetes-1.37/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+        echo "1.36=$(go list -modfile hack/kubernetes-1.36/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+        echo "1.35=$(go list -modfile hack/kubernetes-1.35/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+        echo "1.34=$(go list -modfile hack/kubernetes-1.34/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+        echo "1.33=$(go list -modfile hack/kubernetes-1.33/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
       env:
         GOTOOLCHAIN: auto
 
@@ -36,10 +52,19 @@ jobs:
       contents: write
       packages: write
     needs: build-prep
+    strategy:
+      matrix:
+        include:
+        - kubernetes: ${{ needs.build-prep.outputs.kubernetes }}
+        - kubernetes: ${{ needs.build-prep.outputs['kubernetes-1.37'] }}
+        - kubernetes: ${{ needs.build-prep.outputs['kubernetes-1.36'] }}
+        - kubernetes: ${{ needs.build-prep.outputs['kubernetes-1.35'] }}
+        - kubernetes: ${{ needs.build-prep.outputs['kubernetes-1.34'] }}
+        - kubernetes: ${{ needs.build-prep.outputs['kubernetes-1.33'] }}
     uses: ./.github/workflows/publish.yaml
     with:
       kind-version: ${{ needs.build-prep.outputs.kind-version }}
-      kubernetes-version: ${{ needs.build-prep.outputs.kubernetes-version }}
+      kubernetes-version: ${{ matrix.kubernetes }}
     secrets: inherit
 
   test:
@@ -51,6 +76,8 @@ jobs:
       matrix:
         include:
         - name: defaults
+        - name: k8s-v1.37
+          kubernetes-version: v1.37
         - name: k8s-v1.36
           kubernetes-version: v1.36
         - name: k8s-v1.35
