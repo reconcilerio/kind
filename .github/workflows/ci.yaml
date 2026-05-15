@@ -142,3 +142,11 @@ jobs:
       with:
         name: kind-logs-${{ matrix.name }}
         path: "${{ steps.cluster-logs.outputs.logs-dir }}"
+
+  done:
+    # used as a non-matrix job for protected branches
+    name: Done
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "That's all folks"
