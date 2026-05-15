@@ -104,4 +104,10 @@ echo "##[group]kubectl get nodes"
 echo "##[endgroup]"
 
 echo "context=kind-${name}" >> "${GITHUB_OUTPUT}"
-echo "kubernetes-version=$(kubectl --context "kind-${name}" get nodes -l node-role.kubernetes.io/control-plane -o=jsonpath='{range .items[*]}{.status.nodeInfo.kubeletVersion}{"\n"}{end}')" >> "${GITHUB_OUTPUT}"
+echo 'kubernetes-version<<EOF' >> "${GITHUB_OUTPUT}"
+kubectl get nodes \
+  --context "kind-${name}" \
+  -l node-role.kubernetes.io/control-plane \
+  -o=jsonpath='{range .items[*]}{.status.nodeInfo.kubeletVersion}{"\n"}{end}' \
+  >> "${GITHUB_OUTPUT}"
+echo 'EOF' >> "${GITHUB_OUTPUT}"

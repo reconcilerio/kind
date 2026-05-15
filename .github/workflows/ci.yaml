@@ -28,7 +28,7 @@ jobs:
         go-version: stable
     - name: Resolve kind version
       id: kind
-      run: echo "version=$(go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "$GITHUB_OUTPUT"
+      run: echo "version=$(go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "${GITHUB_OUTPUT}"
       env:
         GOTOOLCHAIN: auto
     - name: Resolve kubernetes version
@@ -36,12 +36,12 @@ jobs:
       run: |
         set -euo pipefail
 
-        echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
-        echo "1.37=$(go list -modfile hack/kubernetes-1.37/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
-        echo "1.36=$(go list -modfile hack/kubernetes-1.36/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
-        echo "1.35=$(go list -modfile hack/kubernetes-1.35/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
-        echo "1.34=$(go list -modfile hack/kubernetes-1.34/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
-        echo "1.33=$(go list -modfile hack/kubernetes-1.33/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "$GITHUB_OUTPUT"
+        echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.37=$(go list -modfile hack/kubernetes-1.37/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.36=$(go list -modfile hack/kubernetes-1.36/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.35=$(go list -modfile hack/kubernetes-1.35/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.34=$(go list -modfile hack/kubernetes-1.34/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.33=$(go list -modfile hack/kubernetes-1.33/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
       env:
         GOTOOLCHAIN: auto
 
@@ -111,8 +111,8 @@ jobs:
       run: |
         set -euo pipefail
 
-        echo "cluster context: ${{ needs.cluster.outputs.context }}"
-        echo "kubernetes version: ${{ needs.cluster.outputs.kubernetes-version }}"
+        echo "cluster context: ${{ steps.cluster.outputs.context }}"
+        echo "kubernetes version: ${{ steps.cluster.outputs.kubernetes-version }}"
     - name: Run a pod
       run: |
         set -euo pipefail
