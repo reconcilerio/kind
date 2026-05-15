@@ -74,7 +74,7 @@ echo "##[endgroup]"
 if [[ "${registry}" != "" ]] ; then
   # Document the local registry
   # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
-  cat <<EOF | kubectl apply -f -
+  cat <<EOF | kubectl --context "kind-${name}" apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -86,3 +86,19 @@ data:
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF
 fi
+
+echo "##[group]kubectl config get-contexts"
+  kubectl config get-contexts
+echo "##[endgroup]"
+
+echo "##[group]kubectl version"
+  kubectl --context "kind-${name}" version
+echo "##[endgroup]"
+
+echo "##[group]kubectl api-resources"
+  kubectl --context "kind-${name}" api-resources
+echo "##[endgroup]"
+
+echo "##[group]kubectl get nodes"
+  kubectl --context "kind-${name}" get nodes
+echo "##[endgroup]"

@@ -11,6 +11,10 @@ on:
         description: kubernetes version to use
         required: true
         type: string
+      latest:
+        description: tag this image as ':latest'
+        type: boolean
+        default: false
   workflow_call:
     inputs: *workflow-inputs
 
@@ -138,3 +142,8 @@ jobs:
       run: |
         crane tag ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }} ${{ inputs.kubernetes-version }}
         crane tag ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }} $( echo "${{ inputs.kubernetes-version }}" | cut -d'.' -f1-2 )
+    - name: ":latest tag"
+      if: inputs.latest
+      run: |
+        crane tag ghcr.io/${{ github.repository }}/node:${{ inputs.kubernetes-version }}-${{ inputs.kind-version }} latest
+        
