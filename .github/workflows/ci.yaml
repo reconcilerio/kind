@@ -147,6 +147,7 @@ jobs:
     # used as a non-matrix job for protected branches
     name: Done
     needs: test
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
     - run: echo "That's all folks"
