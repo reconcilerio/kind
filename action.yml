@@ -19,10 +19,10 @@ inputs:
 outputs:
   context:
     description: kubernetes context for this cluster
-    value: steps.cluster.outputs.context
+    value: ${{ steps.cluster.outputs.context }}
   kubernetes-version:
     description: running kubernetes version as reported by the cluster, multi-node clusters will produce a new line separated list with an item for each control-plane node
-    value: steps.cluster.outputs.kubernetes-version
+    value: ${{ steps.cluster.outputs.kubernetes-version }}
 runs:
   using: "composite"
   steps:
