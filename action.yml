@@ -16,6 +16,13 @@ inputs:
   registry-ca:
     description: Path to PEM encoded certificate authority to trust for the local registry
     type: string
+outputs:
+  context:
+    description: kubernetes context for this cluster
+    value: steps.cluster.outputs.context
+  kubernetes-version:
+    description: running kubernetes version as reported by the cluster, multi-node clusters will produce a new line separated list with an item for each control-plane node
+    value: steps.cluster.outputs.kubernetes-version
 runs:
   using: "composite"
   steps:
@@ -50,6 +57,7 @@ runs:
       with:
         version: ${{ steps.kind-version.outputs.version }}
     - name: Cluster
+      id: cluster
       uses: reconcilerio/post-step-action@v1
       with:
         main: ${{ github.action_path }}/scripts/start-cluster.sh "kind" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"

@@ -101,6 +101,7 @@ jobs:
       uses: reconcilerio/registry@v1
       with: ${{ matrix.registry || fromJson('{}') }}
     - name: kind cluster
+      id: cluster
       uses: ./
       with:
         kubernetes-version: ${{ matrix.kubernetes-version }}
@@ -110,18 +111,8 @@ jobs:
       run: |
         set -euo pipefail
 
-        echo "##[group]kubectl cluster-info"
-          kubectl cluster-info
-        echo "##[endgroup]"
-        echo "##[group]kubectl api-resources"
-          kubectl api-resources
-        echo "##[endgroup]"
-        echo "##[group]kubectl get nodes"
-          kubectl get nodes
-        echo "##[endgroup]"
-        echo "##[group]kubectl describe nodes"
-          kubectl describe nodes
-        echo "##[endgroup]"
+        echo "cluster context: ${{ needs.cluster.outputs.context }}"
+        echo "kubernetes version: ${{ needs.cluster.outputs.kubernetes-version }}"
     - name: Run a pod
       run: |
         set -euo pipefail

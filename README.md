@@ -5,6 +5,7 @@
 Starts a secure, trusted OCI registry for a GitHub Actions workflow. The nuscenes of creating and trusting certificates, or allowing clients to run insecurely is avoided.
 
 - [Usage](#usage)
+  - [Outputs](#outputs)
 - [Community](#community)
   - [Code of Conduct](#code-of-conduct)
   - [Communication](#communication)
@@ -67,6 +68,11 @@ steps:
 Starts a kind cluster configured to use a local  OCI registry with a generated certificate that is trust by the job VM and the kind cluster.
 
 Images can be pushed to the registry (defined by `${{ steps.registry.outputs.registry }}`, defaulting to `registry.local`), and pulled for pods within the cluster. Direct, programmatic access to the registry from within a running container will likely require propagating the CA certificate to that container in a way it understands.
+
+### Outputs
+
+- **`context`** kubernetes context for this cluster.
+- **`kubernetes-version`** running kubernetes version as reported by the cluster. Multi-node clusters will produce a new line separated list with an line for each control-plane node.
 
 ## Community
 
