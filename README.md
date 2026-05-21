@@ -21,6 +21,11 @@ See [action.yml](action.yml)
 ```yaml
 - uses: reconcilerio/registry@v1
   with:
+    # Optional cluster-name.
+    # Name of kind cluster.
+    # Default: 'kind'
+    cluster-name: 'kind'
+
     # Optional kind-version.
     # Version of the kind CLI to install.
     # Default: latest stable
