@@ -1,0 +1,35 @@
+name: kind logs
+description: Export and upload logs for a kind cluster
+branding:
+  icon: refresh-cw
+  color: green
+inputs:
+  cluster-name:
+    description: Name of the kind cluster.
+    type: string
+    default: kind
+  artifact-name:
+    description: Name of the uploaded artifact. Recommended when this action is used more than once in the same workflow.
+    type: string
+    default: kind-logs
+outputs:
+  logs-dir:
+    description: Directory containing the exported logs.
+    value: ${{ steps.export.outputs.logs-dir }}
+runs:
+  using: "composite"
+  steps:
+    - name: Export logs
+      id: export
+      run: |
+        set -euo pipefail
+
+        logs_dir="$(kind export logs -n "${{ inputs.cluster-name || 'kind' }}")"
+        echo "logs-dir=${logs_dir}" >> "${GITHUB_OUTPUT}"
+      shell: bash
+    - name: Upload logs
+      uses: actions/upload-artifact@v7
+      with:
+        name: "${{ inputs.artifact-name || 'kind-logs' }}"
+        path: "${{ steps.export.outputs.logs-dir }}"
+

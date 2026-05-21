@@ -6,6 +6,7 @@ Starts a secure, trusted OCI registry for a GitHub Actions workflow. The nuscene
 
 - [Usage](#usage)
   - [Outputs](#outputs)
+- [Nested actions](#nested-actions)
 - [Community](#community)
   - [Code of Conduct](#code-of-conduct)
   - [Communication](#communication)
@@ -78,6 +79,9 @@ Images can be pushed to the registry (defined by `${{ steps.registry.outputs.reg
 
 - **`context`** kubernetes context for this cluster.
 - **`kubernetes-version`** running kubernetes version as reported by the cluster. Multi-node clusters will produce a new line separated list with an line for each control-plane node.
+
+## Nested actions
+- [`reconcilerio/kind/logs`](./logs/) Export and upload logs for a kind cluster
 
 ## Community
 
