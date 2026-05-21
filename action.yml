@@ -7,7 +7,6 @@ inputs:
   cluster-name:
     description: Name of the kind cluster.
     type: string
-    required: true
     default: kind
   kind-version:
     description: Version of kind to use.
@@ -65,5 +64,5 @@ runs:
       id: cluster
       uses: reconcilerio/post-step-action@v1
       with:
-        main: ${{ github.action_path }}/scripts/start-cluster.sh "${{ inputs.cluster-name }}" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"
-        post: ${{ github.action_path }}/scripts/stop-cluster.sh "${{ inputs.cluster-name }}"
+        main: ${{ github.action_path }}/scripts/start-cluster.sh "${{ inputs.cluster-name || 'kind' }}" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"
+        post: ${{ github.action_path }}/scripts/stop-cluster.sh "${{ inputs.cluster-name || 'kind' }}"
