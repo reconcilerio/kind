@@ -90,6 +90,8 @@ jobs:
           kubernetes-version: v1.33
         - name: local-registry
           registry: {}
+        - name: custom-name
+          cluster-name: mean
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
@@ -104,6 +106,7 @@ jobs:
       id: cluster
       uses: ./
       with:
+        cluster-name: ${{ matrix.cluster-name }}
         kubernetes-version: ${{ matrix.kubernetes-version }}
         registry: ${{ steps.registry.outputs.registry }}
         registry-ca: ${{ steps.registry.outputs.tls-ca }}
@@ -136,7 +139,7 @@ jobs:
       run: |
         set -euo pipefail
 
-        echo "logs-dir=$(kind export logs --name kind)" >> "${GITHUB_OUTPUT}"
+        echo "logs-dir=$(kind export logs --name "${{ matrix.cluster-name || 'kind' }}")" >> "${GITHUB_OUTPUT}"
     - uses: actions/upload-artifact@v7
       if: always()
       with:
