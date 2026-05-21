@@ -7,6 +7,7 @@ inputs:
   cluster-name:
     description: Name of the kind cluster.
     type: string
+    required: true
     default: kind
   kind-version:
     description: Version of kind to use.

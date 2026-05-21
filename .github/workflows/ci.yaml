@@ -139,7 +139,7 @@ jobs:
       run: |
         set -euo pipefail
 
-        echo "logs-dir=$(kind export logs --name kind)" >> "${GITHUB_OUTPUT}"
+        echo "logs-dir=$(kind export logs --name "${{ matrix.cluster-name || 'kind' }}")" >> "${GITHUB_OUTPUT}"
     - uses: actions/upload-artifact@v7
       if: always()
       with:
