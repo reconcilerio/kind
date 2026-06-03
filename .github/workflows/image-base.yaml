@@ -1,0 +1,263 @@
+name: Base image
+
+on:
+  workflow_call:
+    inputs:
+      kind-version:
+        description: kind version to use
+        required: true
+        type: string
+      repository:
+        description: nested image repository to publish into
+        type: string
+        default: ""
+      tag:
+        description: primary image tag to publish
+        required: true
+        type: string
+      additional-tags:
+        description: new line delimited set of additional tags to add to the published image
+        type: string
+      publish:
+        description: publish built image
+        type: boolean
+        default: true
+      force:
+        description: force overwriting an existing image
+        type: boolean
+        default: false
+    outputs:
+      artifact-name:
+        description: uploaded base image artifact name
+        value: "kind-base-${{ inputs.tag }}"
+      digest:
+        description: digest for base image
+        value: "${{ case(inputs.force || ! jobs.preflight.outputs.existing-digest, jobs.assemble.outputs.digest, jobs.preflight.outputs.existing-digest)  }}"
+
+concurrency:
+  group: ${{ case(inputs.publish, inputs.tag, format('run-{0}-{1}', github.run_id, inputs.tag)) }}
+  queue: max
+
+env:
+  artifact-name: "kind-base-${{ inputs.tag }}"
+  repository: "${{
+      case(inputs.repository == '',
+        format('ghcr.io/{0}/base', github.repository),
+        format('ghcr.io/{0}/base/{1}', github.repository, inputs.repository)
+      )
+    }}"
+
+jobs:
+
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    outputs:
+      existing-digest: ${{ steps.existing.outputs.digest }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install crane
+      uses: reconcilerio/install-crane-action@v1
+    - name: Check for existing image
+      id: existing
+      run: |
+        set -euo pipefail
+
+        digest="$(crane digest "${{ env.repository }}:${{ inputs.tag }}" || echo -n '')"
+        echo "digest=${digest}" | tee -a "${GITHUB_OUTPUT}"
+    - name: Capture kind base image
+      if: ${{ ! ( inputs.force || ! steps.existing.outputs.digest ) }}
+      run: |
+        crane pull --format oci \
+          "${{ env.repository }}:${{ inputs.tag }}@${{ steps.existing.outputs.digest }}" \
+          "${{ env.artifact-name }}"
+    - uses: actions/upload-artifact@v7
+      if: ${{ ! ( inputs.force || ! steps.existing.outputs.digest ) }}
+      with:
+        name: "${{ env.artifact-name }}"
+        path: "${{ env.artifact-name }}"
+        retention-days: 7
+
+  build:
+    name: Build
+    needs: preflight
+    if: ${{ inputs.force || ! needs.preflight.outputs.existing-digest }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - arch: amd64
+          os: ubuntu-24.04
+        - arch: arm64
+          os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Checkout kind ${{ inputs.kind-version }}
+      uses: actions/checkout@v6
+      with:
+        repository: kubernetes-sigs/kind
+        path: kind
+        ref: ${{ inputs.kind-version }}
+    - name: Install crane
+      uses: reconcilerio/install-crane-action@v1
+    - name: OCI registry
+      id: registry
+      uses: reconcilerio/registry@v1
+    - name: Build base image
+      run: make build
+      env:
+        IMAGE: "${{ steps.registry.outputs.registry }}/base:${{ matrix.arch }}"
+        PLATFORMS: "linux/${{ matrix.arch }}"
+        EXTRA_BUILD_OPT: "--load"
+      working-directory: kind/images/base
+    - name: Capture base image
+      run: |
+        mkdir -p "${{ env.artifact-name }}-${{ matrix.arch }}"
+        docker save \
+          "${{ steps.registry.outputs.registry }}/base:${{ matrix.arch }}" \
+          | tar -xvf - -C "${{ env.artifact-name }}-${{ matrix.arch }}"
+    - uses: actions/upload-artifact@v7
+      with:
+        name: "${{ env.artifact-name }}-${{ matrix.arch }}"
+        path: "${{ env.artifact-name }}-${{ matrix.arch }}"
+        retention-days: 7
+
+  assemble:
+    name: Assemble images
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.assemble.outputs.digest }}
+      digest-amd64: ${{ steps.assemble.outputs.digest-amd64 }}
+      digest-arm64: ${{ steps.assemble.outputs.digest-arm64 }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install crane
+      uses: reconcilerio/install-crane-action@v1
+    - name: OCI registry
+      id: registry
+      uses: reconcilerio/registry@v1
+    - name: Download staged image amd64
+      uses: actions/download-artifact@v8
+      with:
+        name: "${{ env.artifact-name }}-amd64"
+        path: "${{ env.artifact-name }}-amd64"
+    - name: Download staged image arm64
+      uses: actions/download-artifact@v8
+      with:
+        name: "${{ env.artifact-name }}-arm64"
+        path: "${{ env.artifact-name }}-arm64"
+    - name: Assemble node image index
+      id: assemble
+      run: |
+        set -euo pipefail
+
+        crane push \
+          "${{ env.artifact-name }}-amd64" \
+          "${{ steps.registry.outputs.registry }}/base:amd64"
+        crane push \
+          "${{ env.artifact-name }}-arm64" \
+          "${{ steps.registry.outputs.registry }}/base:arm64"
+
+        crane index append \
+          -m ${{ steps.registry.outputs.registry }}/base:amd64 \
+          -m ${{ steps.registry.outputs.registry }}/base:arm64 \
+          -t ${{ steps.registry.outputs.registry }}/base
+
+        echo "digest=$(crane digest "${{ steps.registry.outputs.registry }}/base")" | tee -a "${GITHUB_OUTPUT}"
+        echo "digest-amd64=$(crane digest "${{ steps.registry.outputs.registry }}/base:amd64")" | tee -a "${GITHUB_OUTPUT}"
+        echo "digest-arm64=$(crane digest "${{ steps.registry.outputs.registry }}/base:arm64")" | tee -a "${GITHUB_OUTPUT}"
+
+        crane pull --format oci \
+          "${{ steps.registry.outputs.registry }}/base" \
+          "${{ env.artifact-name }}"
+    - uses: actions/upload-artifact@v7
+      with:
+        name: "${{ env.artifact-name }}"
+        path: "${{ env.artifact-name }}"
+        retention-days: 7
+
+  test:
+    name: Test base image
+    needs: assemble
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.digest.outputs.digest }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install crane
+      uses: reconcilerio/install-crane-action@v1
+    - name: OCI registry
+      id: registry
+      uses: reconcilerio/registry@v1
+    - name: Download staged image
+      uses: actions/download-artifact@v8
+      with:
+        name: "${{ env.artifact-name }}"
+        path: "${{ env.artifact-name }}"
+    - name: Capture base image digest
+      id: digest
+      run: |
+        set -euo pipefail
+
+        digest="${{ needs.assemble.outputs.digest }}"
+        echo "digest=${digest}" | tee -a "${GITHUB_OUTPUT}"
+    - name: Relocate image
+      run: |
+        crane push \
+          "${{ env.artifact-name }}" \
+          "${{ steps.registry.outputs.registry }}/base@${{ needs.assemble.outputs.digest }}"
+    # TODO test base image
+
+  publish:
+    name: Publish
+    needs: test
+    if: inputs.publish
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      id-token: write
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install crane
+      uses: reconcilerio/install-crane-action@v1
+    - name: Install cosign
+      uses: sigstore/cosign-installer@v4.1.2
+    - name: Download staged image
+      uses: actions/download-artifact@v8
+      with:
+        name: "${{ env.artifact-name }}"
+        path: "${{ env.artifact-name }}"
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push
+      run: |
+        crane push \
+          "${{ env.artifact-name }}" \
+          "${{ env.repository }}@${{ needs.test.outputs.digest }}"
+    - name: Sign
+      run: |
+        cosign sign --yes \
+          "${{ env.repository }}@${{ needs.test.outputs.digest }}"
+    - name: Additional tags
+      if: inputs.additional-tags
+      run: |
+        set -euo pipefail
+
+        additional_tags="$(echo "${{ inputs.additional-tags }}" | awk '{$1=$1};1' | grep -v -e "^$")"
+
+        while IFS= read -r tag; do
+          crane tag \
+            "${{ env.repository }}@${{ needs.test.outputs.digest }}" \
+            "${tag}"
+        done <<< "${additional_tags}"
+    - name: Primary tag
+      run: |
+        crane tag \
+            "${{ env.repository }}@${{ needs.test.outputs.digest }}" \
+            "${{ inputs.tag }}"

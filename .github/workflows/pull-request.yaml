@@ -1,0 +1,134 @@
+name: Pull request
+
+on:
+  pull_request: {}
+
+jobs:
+
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      kind-version: ${{ steps.kind.outputs.version }}
+      kubernetes: ${{ steps.kubernetes.outputs.version }}
+      kubernetes-changed: ${{ steps.filter.outputs['kubernetes'] }}
+      kubernetes-1.37: ${{ steps.kubernetes.outputs['1.37'] }}
+      kubernetes-1.37-changed: ${{ steps.filter.outputs['kubernetes-1.37'] }}
+      kubernetes-1.36: ${{ steps.kubernetes.outputs['1.36'] }}
+      kubernetes-1.36-changed: ${{ steps.filter.outputs['kubernetes-1.36'] }}
+      kubernetes-1.35: ${{ steps.kubernetes.outputs['1.35'] }}
+      kubernetes-1.35-changed: ${{ steps.filter.outputs['kubernetes-1.35'] }}
+      kubernetes-1.34: ${{ steps.kubernetes.outputs['1.34'] }}
+      kubernetes-1.34-changed: ${{ steps.filter.outputs['kubernetes-1.34'] }}
+      kubernetes-1.33: ${{ steps.kubernetes.outputs['1.33'] }}
+      kubernetes-1.33-changed: ${{ steps.filter.outputs['kubernetes-1.33'] }}
+      commons-changed: ${{ steps.filter.outputs.commons }}
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-go@v6
+      with:
+        go-version: stable
+    - uses: dorny/paths-filter@v4
+      id: filter
+      with:
+        filters: |
+          commons:
+          - '.github/**'
+          - 'action.yml'
+          - 'logs/action.yml'
+          - 'versions/kind/**'
+          kubernetes:
+          - 'versions/kubernetes/**'
+          kubernetes-1.37:
+          - 'versions/kubernetes-1.37/**'
+          kubernetes-1.36:
+          - 'versions/kubernetes-1.36/**'
+          kubernetes-1.35:
+          - 'versions/kubernetes-1.35/**'
+          kubernetes-1.34:
+          - 'versions/kubernetes-1.34/**'
+          kubernetes-1.33:
+          - 'versions/kubernetes-1.33/**'
+    - name: Resolve kind version
+      id: kind
+      run: echo "version=$(go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "${GITHUB_OUTPUT}"
+      env:
+        GOTOOLCHAIN: auto
+    - name: Resolve kubernetes version
+      id: kubernetes
+      run: |
+        set -euo pipefail
+
+        echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.37=$(go list -modfile hack/kubernetes-1.37/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.36=$(go list -modfile hack/kubernetes-1.36/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.35=$(go list -modfile hack/kubernetes-1.35/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.34=$(go list -modfile hack/kubernetes-1.34/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        echo "1.33=$(go list -modfile hack/kubernetes-1.33/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+      env:
+        GOTOOLCHAIN: auto
+
+  base:
+    name: Base image
+    needs: preflight
+    permissions:
+      packages: write
+      id-token: write
+    uses: ./.github/workflows/image-base.yaml
+    with:
+      kind-version: ${{ needs.preflight.outputs.kind-version }}
+      tag: ${{ needs.preflight.outputs.kind-version }}
+      publish: false
+      force: ${{ needs.preflight.outputs.commons-changed == 'true' }}
+    secrets: inherit
+
+  node:
+    name: Nodes image
+    permissions:
+      # called workflow requires write even though it's never used from here
+      packages: write
+      id-token: write
+    needs: [base, preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - tag: ${{ needs.preflight.outputs['kubernetes'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.37'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.37'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.37-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.36'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.36'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.36-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.35'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.35'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.35-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.34'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.34'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.34-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.33'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.33'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.33-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+    uses: ./.github/workflows/image-node.yaml
+    with:
+      kind-version: "${{ needs.preflight.outputs.kind-version }}"
+      kind-base-artifact-name: "${{ needs.base.outputs.artifact-name }}"
+      kind-base-digest: "${{ needs.base.outputs.digest }}"
+      kubernetes-version: "${{ matrix.kubernetes-version }}"
+      tag: "${{ matrix.tag }}"
+      publish: false
+      force: ${{ matrix.force }}
+      id: "${{ github.run_id }}-${{ strategy.job-index }}"
+    secrets: inherit
+
+  done:
+    # used as a non-matrix job for protected branches
+    name: Done
+    needs: node
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "That's all folks"

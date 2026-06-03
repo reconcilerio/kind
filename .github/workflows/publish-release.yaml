@@ -1,0 +1,39 @@
+name: Published release
+
+on:
+  release:
+    types:
+    - released
+
+jobs:
+  released:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to push to the repo
+    steps:
+    - uses: actions/checkout@v6
+    - name: Vanity tags
+      run: |
+        set -euo pipefail
+
+        release_tag="${GITHUB_REF/refs\/tags\//}"
+        latest_tag="$(gh api repos/{owner}/{repo}/releases/latest --jq .tag_name)"
+
+        # TODO check if current vanity tag is older than new tag
+        if [[ "${release_tag}" != "${latest_tag}" ]] ; then
+           echo "::error title=Not latest::skipping vanity tags since release is not the latest"
+           exit 1
+        fi
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        new_tag_major="$(echo "${release_tag}" | cut -d. -f1)"
+        git tag -f "${new_tag_major}"
+        git push -f origin "${new_tag_major}"
+
+        new_tag_minor="$(echo "${release_tag}" | cut -d. -f1-2)"
+        git tag -f "${new_tag_minor}"
+        git push -f origin "${new_tag_minor}"
+      env:
+        GH_TOKEN: ${{ github.token }}
