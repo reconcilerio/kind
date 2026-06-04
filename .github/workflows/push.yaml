@@ -100,7 +100,7 @@ jobs:
       tag: "${{ matrix.tag }}"
       additional-tags: "${{ matrix.additional-tags }}"
       publish: ${{ github.ref == 'refs/heads/main' }}
-      id: "${{ github.run_id }}-${{ strategy.job-index }}"
+      id: "${{ strategy.job-index }}"
     secrets: inherit
 
   done:

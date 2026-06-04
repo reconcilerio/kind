@@ -41,12 +41,20 @@ on:
       id:
         description: identifier to distinguish calls within a matrix
         type: string
+    outputs:
+      artifact-name:
+        description: uploaded node image artifact name
+        value: "kind-node-${{ inputs.tag }}-${{ inputs.id || '0'}}"
+      digest:
+        description: digest for node image
+        value: "${{ case(inputs.force || ! jobs.preflight.outputs.existing-digest, jobs.assemble.outputs.digest, jobs.preflight.outputs.existing-digest)  }}"
 
 concurrency:
   group: ${{ case(inputs.publish, inputs.tag, format('run-{0}-{1}', inputs.id || github.run_id, inputs.tag)) }}
   queue: max
 
 env:
+  artifact-name: "kind-node-${{ inputs.tag }}-${{ inputs.id || '0'}}"
   repository: "${{
       case(inputs.repository == '',
         format('ghcr.io/{0}/node', github.repository),
@@ -126,11 +134,11 @@ jobs:
 
         crane pull --format oci \
           "${{ steps.registry.outputs.registry }}/node" \
-          "kind-node-${{ inputs.kubernetes-version }}-${{ matrix.arch }}"
+          "${{ env.artifact-name }}-${{ matrix.arch }}"
     - uses: actions/upload-artifact@v7
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}-${{ matrix.arch }}"
-        path: "kind-node-${{ inputs.kubernetes-version }}-${{ matrix.arch }}"
+        name: "${{ env.artifact-name }}-${{ matrix.arch }}"
+        path: "${{ env.artifact-name }}-${{ matrix.arch }}"
         retention-days: 7
 
   assemble:
@@ -151,23 +159,23 @@ jobs:
     - name: Download staged image amd64
       uses: actions/download-artifact@v8
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}-amd64"
-        path: "kind-node-${{ inputs.kubernetes-version }}-amd64"
+        name: "${{ env.artifact-name }}-amd64"
+        path: "${{ env.artifact-name }}-amd64"
     - name: Download staged image arm64
       uses: actions/download-artifact@v8
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}-arm64"
-        path: "kind-node-${{ inputs.kubernetes-version }}-arm64"
+        name: "${{ env.artifact-name }}-arm64"
+        path: "${{ env.artifact-name }}-arm64"
     - name: Assemble node image index
       id: assemble
       run: |
         set -euo pipefail
 
         crane push \
-          "kind-node-${{ inputs.kubernetes-version }}-amd64" \
+          "${{ env.artifact-name }}-amd64" \
           "${{ steps.registry.outputs.registry }}/node:amd64"
         crane push \
-          "kind-node-${{ inputs.kubernetes-version }}-arm64" \
+          "${{ env.artifact-name }}-arm64" \
           "${{ steps.registry.outputs.registry }}/node:arm64"
 
         crane index append \
@@ -181,11 +189,11 @@ jobs:
 
         crane pull --format oci \
           "${{ steps.registry.outputs.registry }}/node" \
-          "kind-node-${{ inputs.kubernetes-version }}"
+          "${{ env.artifact-name }}"
     - uses: actions/upload-artifact@v7
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}"
-        path: "kind-node-${{ inputs.kubernetes-version }}"
+        name: "${{ env.artifact-name }}"
+        path: "${{ env.artifact-name }}"
         retention-days: 7
   
   test:
@@ -206,8 +214,8 @@ jobs:
     - name: Download staged image
       uses: actions/download-artifact@v8
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}"
-        path: "kind-node-${{ inputs.kubernetes-version }}"
+        name: "${{ env.artifact-name }}"
+        path: "${{ env.artifact-name }}"
     - name: Image digests
       id: digests
       run: |
@@ -219,7 +227,7 @@ jobs:
         set -euo pipefail
 
         crane push \
-          "kind-node-${{ inputs.kubernetes-version }}" \
+          "${{ env.artifact-name }}" \
           "${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}"
     - name: kind cluster
       id: cluster
@@ -274,18 +282,18 @@ jobs:
     - name: Download staged image
       uses: actions/download-artifact@v8
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}"
-        path: "kind-node-${{ inputs.kubernetes-version }}"
+        name: "${{ env.artifact-name }}"
+        path: "${{ env.artifact-name }}"
     - name: Download staged image amd64
       uses: actions/download-artifact@v8
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}-amd64"
-        path: "kind-node-${{ inputs.kubernetes-version }}-amd64"
+        name: "${{ env.artifact-name }}-amd64"
+        path: "${{ env.artifact-name }}-amd64"
     - name: Download staged image arm64
       uses: actions/download-artifact@v8
       with:
-        name: "kind-node-${{ inputs.kubernetes-version }}-arm64"
-        path: "kind-node-${{ inputs.kubernetes-version }}-arm64"
+        name: "${{ env.artifact-name }}-arm64"
+        path: "${{ env.artifact-name }}-arm64"
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v4
       with:
@@ -297,13 +305,13 @@ jobs:
         set -euo pipefail
 
         crane push \
-          "kind-node-${{ inputs.kubernetes-version }}" \
+          "${{ env.artifact-name }}" \
           "${{ env.repository }}@${{ needs.test.outputs.digest }}"
         crane push \
-          "kind-node-${{ inputs.kubernetes-version }}-amd64" \
+          "${{ env.artifact-name }}-amd64" \
           "${{ env.repository }}@${{ needs.test.outputs.digest-amd64 }}"
         crane push \
-          "kind-node-${{ inputs.kubernetes-version }}-arm64" \
+          "${{ env.artifact-name }}-arm64" \
           "${{ env.repository }}@${{ needs.test.outputs.digest-arm64 }}"
     - name: Sign
       run: |

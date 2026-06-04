@@ -122,7 +122,7 @@ jobs:
       tag: "${{ matrix.tag }}"
       publish: false
       force: ${{ matrix.force }}
-      id: "${{ github.run_id }}-${{ strategy.job-index }}"
+      id: "${{ strategy.job-index }}"
     secrets: inherit
 
   done:
