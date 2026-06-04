@@ -21,7 +21,9 @@ jobs:
       kubernetes-1.33: ${{ steps.kubernetes.outputs['1.33'] }}
     steps:
     - uses: actions/checkout@v6
-    
+    - uses: actions/setup-go@v6
+      with:
+        go-version: stable
     - name: Resolve kind version
       id: kind
       run: echo "version=$(go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "${GITHUB_OUTPUT}"
