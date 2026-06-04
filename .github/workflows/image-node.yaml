@@ -84,6 +84,7 @@ jobs:
   build:
     name: Build node image
     needs: preflight
+    if: ${{ inputs.force || ! needs.preflight.outputs.existing-digest }}
     strategy:
       fail-fast: false
       matrix:
