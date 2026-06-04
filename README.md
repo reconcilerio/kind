@@ -1,6 +1,6 @@
 # kind action  <!-- omit in toc -->
 
-[![CI](https://github.com/reconcilerio/kind/actions/workflows/ci.yaml/badge.svg)](https://github.com/reconcilerio/kind/actions/workflows/ci.yaml)
+[![Push](https://github.com/reconcilerio/kind/actions/workflows/push.yaml/badge.svg?branch=main)](https://github.com/reconcilerio/kind/actions/workflows/push.yaml)
 
 Starts a secure, trusted OCI registry for a GitHub Actions workflow. The nuscenes of creating and trusting certificates, or allowing clients to run insecurely is avoided.
 
