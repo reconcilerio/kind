@@ -24,6 +24,26 @@ jobs:
       kubernetes-1.34-changed: ${{ steps.filter.outputs['kubernetes-1.34'] }}
       kubernetes-1.33: ${{ steps.kubernetes.outputs['1.33'] }}
       kubernetes-1.33-changed: ${{ steps.filter.outputs['kubernetes-1.33'] }}
+      kubernetes-1.32: ${{ steps.kubernetes.outputs['1.32'] }}
+      kubernetes-1.32-changed: ${{ steps.filter.outputs['kubernetes-1.32'] }}
+      kubernetes-1.31: ${{ steps.kubernetes.outputs['1.31'] }}
+      kubernetes-1.31-changed: ${{ steps.filter.outputs['kubernetes-1.31'] }}
+      kubernetes-1.30: ${{ steps.kubernetes.outputs['1.30'] }}
+      kubernetes-1.30-changed: ${{ steps.filter.outputs['kubernetes-1.30'] }}
+      kubernetes-1.29: ${{ steps.kubernetes.outputs['1.29'] }}
+      kubernetes-1.29-changed: ${{ steps.filter.outputs['kubernetes-1.29'] }}
+      kubernetes-1.28: ${{ steps.kubernetes.outputs['1.28'] }}
+      kubernetes-1.28-changed: ${{ steps.filter.outputs['kubernetes-1.28'] }}
+      kubernetes-1.27: ${{ steps.kubernetes.outputs['1.27'] }}
+      kubernetes-1.27-changed: ${{ steps.filter.outputs['kubernetes-1.27'] }}
+      kubernetes-1.26: ${{ steps.kubernetes.outputs['1.26'] }}
+      kubernetes-1.26-changed: ${{ steps.filter.outputs['kubernetes-1.26'] }}
+      kubernetes-1.25: ${{ steps.kubernetes.outputs['1.25'] }}
+      kubernetes-1.25-changed: ${{ steps.filter.outputs['kubernetes-1.25'] }}
+      kubernetes-1.24: ${{ steps.kubernetes.outputs['1.24'] }}
+      kubernetes-1.24-changed: ${{ steps.filter.outputs['kubernetes-1.24'] }}
+      kubernetes-1.23: ${{ steps.kubernetes.outputs['1.23'] }}
+      kubernetes-1.23-changed: ${{ steps.filter.outputs['kubernetes-1.23'] }}
       commons-changed: ${{ steps.filter.outputs.commons }}
     steps:
     - uses: actions/checkout@v6
@@ -51,6 +71,26 @@ jobs:
           - 'versions/kubernetes-1.34/**'
           kubernetes-1.33:
           - 'versions/kubernetes-1.33/**'
+          kubernetes-1.32:
+          - 'versions/kubernetes-1.32/**'
+          kubernetes-1.31:
+          - 'versions/kubernetes-1.31/**'
+          kubernetes-1.30:
+          - 'versions/kubernetes-1.30/**'
+          kubernetes-1.29:
+          - 'versions/kubernetes-1.29/**'
+          kubernetes-1.28:
+          - 'versions/kubernetes-1.28/**'
+          kubernetes-1.27:
+          - 'versions/kubernetes-1.27/**'
+          kubernetes-1.26:
+          - 'versions/kubernetes-1.26/**'
+          kubernetes-1.25:
+          - 'versions/kubernetes-1.25/**'
+          kubernetes-1.24:
+          - 'versions/kubernetes-1.24/**'
+          kubernetes-1.23:
+          - 'versions/kubernetes-1.23/**'
     - name: Resolve kind version
       id: kind
       run: echo "version=$(go list -modfile hack/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "${GITHUB_OUTPUT}"
@@ -62,11 +102,9 @@ jobs:
         set -euo pipefail
 
         echo "version=$(go list -modfile hack/kubernetes/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
-        echo "1.37=$(go list -modfile hack/kubernetes-1.37/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
-        echo "1.36=$(go list -modfile hack/kubernetes-1.36/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
-        echo "1.35=$(go list -modfile hack/kubernetes-1.35/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
-        echo "1.34=$(go list -modfile hack/kubernetes-1.34/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
-        echo "1.33=$(go list -modfile hack/kubernetes-1.33/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        for minor in {23..37}; do
+          echo "1.${minor}=$(go list -modfile hack/kubernetes-1.${minor}/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+        done
       env:
         GOTOOLCHAIN: auto
 
@@ -113,6 +151,36 @@ jobs:
         - tag: ${{ needs.preflight.outputs['kubernetes-1.33'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.33'] }}
           force: ${{ needs.preflight.outputs['kubernetes-1.33-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.32'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.32'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.32-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.31'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.31'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.31-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.30'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.30'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.30-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.29'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.29'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.29-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.28'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.28'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.28-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.27'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.27'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.27-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.26'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.26'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.26-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.25'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.25'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.25-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.24'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.24'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.24-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
+        - tag: ${{ needs.preflight.outputs['kubernetes-1.23'] }}-${{ needs.preflight.outputs.kind-version}}
+          kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.23'] }}
+          force: ${{ needs.preflight.outputs['kubernetes-1.23-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
     uses: ./.github/workflows/image-node.yaml
     with:
       kind-version: "${{ needs.preflight.outputs.kind-version }}"

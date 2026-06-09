@@ -47,3 +47,73 @@ updates:
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.32"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.31"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.30"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.29"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.28"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.27"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.26"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.25"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.24"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
+  directory: "/hack/kubernetes-1.23"
+  allow:
+  - dependency-name: "*"
+    update-types: ["version-update:semver-patch"]
+  schedule:
+    interval: daily
