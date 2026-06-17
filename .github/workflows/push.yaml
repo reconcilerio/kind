@@ -52,7 +52,7 @@ jobs:
         GOTOOLCHAIN: auto
 
   base:
-    name: Base image
+    name: Base image ${{ needs.preflight.outputs.kind-version }}
     needs: preflight
     permissions:
       packages: write
@@ -65,7 +65,7 @@ jobs:
     secrets: inherit
 
   node:
-    name: Node image
+    name: Node image ${{ matrix.kubernetes-version }}
     permissions:
       packages: write
       id-token: write

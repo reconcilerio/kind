@@ -82,18 +82,20 @@ jobs:
         echo "digest=${digest}" | tee -a "${GITHUB_OUTPUT}"
 
   build:
-    name: Build node image
+    name: Build ${{ matrix.os }}/${{ matrix.arch }}
     needs: preflight
     if: ${{ inputs.force || ! needs.preflight.outputs.existing-digest }}
     strategy:
       fail-fast: false
       matrix:
         include:
-        - arch: amd64
-          os: ubuntu-24.04
-        - arch: arm64
-          os: ubuntu-24.04-arm
-    runs-on: ${{ matrix.os }}
+        - os: linux
+          arch: amd64
+          runs-on: ubuntu-24.04
+        - os: linux
+          arch: arm64
+          runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runs-on }}
     steps:
     - uses: actions/checkout@v6
     - name: Install crane
@@ -143,7 +145,7 @@ jobs:
         retention-days: 7
 
   assemble:
-    name: Assemble images
+    name: Assemble
     needs: build
     runs-on: ubuntu-latest
     outputs:
@@ -198,7 +200,7 @@ jobs:
         retention-days: 7
   
   test:
-    name: Test images
+    name: Test
     needs: assemble
     runs-on: ubuntu-latest
     outputs:
