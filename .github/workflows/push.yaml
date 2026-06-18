@@ -30,7 +30,7 @@ jobs:
       kubernetes-1.24: ${{ steps.kubernetes.outputs['1.24'] }}
       kubernetes-1.23: ${{ steps.kubernetes.outputs['1.23'] }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: actions/setup-go@v6
       with:
         go-version: stable
@@ -170,7 +170,7 @@ jobs:
     permissions:
       packages: write
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install crane
       uses: reconcilerio/install-crane-action@v1
     - name: Login to GitHub Container Registry
