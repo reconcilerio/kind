@@ -55,7 +55,7 @@ jobs:
     outputs:
       existing-digest: ${{ steps.existing.outputs.digest }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install crane
       uses: reconcilerio/install-crane-action@v1
     - name: Check for existing image
@@ -94,9 +94,9 @@ jobs:
           runs-on: ubuntu-24.04-arm
     runs-on: ${{ matrix.runs-on }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Checkout kind ${{ inputs.kind-version }}
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: kubernetes-sigs/kind
         path: kind
@@ -134,7 +134,7 @@ jobs:
       digest-amd64: ${{ steps.assemble.outputs.digest-amd64 }}
       digest-arm64: ${{ steps.assemble.outputs.digest-arm64 }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install crane
       uses: reconcilerio/install-crane-action@v1
     - name: OCI registry
@@ -187,7 +187,7 @@ jobs:
     outputs:
       digest: ${{ steps.digest.outputs.digest }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install crane
       uses: reconcilerio/install-crane-action@v1
     - name: OCI registry
@@ -221,7 +221,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install crane
       uses: reconcilerio/install-crane-action@v1
     - name: Install cosign
