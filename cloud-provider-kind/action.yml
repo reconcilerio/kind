@@ -22,13 +22,11 @@ runs:
         echo "version=${version}" >> "${GITHUB_OUTPUT}"
       shell: bash
     - name: Install cloud-provider-kind
-      uses: reconcilerio/go-install-action@v1
-      id: install
+      uses: scothis/install-kind-action/cloud-provider-kind@cloud-provider-kind
       with:
-        package: sigs.k8s.io/cloud-provider-kind
         version: "${{ steps.cloud-provider-kind-version.outputs.version }}"
     - name: Run cloud-provider-kind in background
       uses: reconcilerio/post-step-action@v1
       with:
-        main: ${{ github.action_path }}/../scripts/start-cloud-provider-kind.sh ${{ steps.install.outputs.path }}
+        main: ${{ github.action_path }}/../scripts/start-cloud-provider-kind.sh
         post: ${{ github.action_path }}/../scripts/stop-cloud-provider-kind.sh
