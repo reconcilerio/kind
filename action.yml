@@ -93,5 +93,5 @@ runs:
       if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
       uses: reconcilerio/post-step-action@v1
       with:
-        main: ${{ github.action_path }}/../scripts/start-cloud-provider-kind.sh
-        post: ${{ github.action_path }}/../scripts/stop-cloud-provider-kind.sh
+        main: ${{ github.action_path }}/scripts/start-cloud-provider-kind.sh
+        post: ${{ github.action_path }}/scripts/stop-cloud-provider-kind.sh
