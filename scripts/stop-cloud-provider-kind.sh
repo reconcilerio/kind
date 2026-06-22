@@ -7,7 +7,7 @@ work_dir="${RUNNER_TEMP}/reconcilerio/kind/cloud-provider-kind"
 echo "Stopping cloud-provider-kind"
 PID=$(cat "${work_dir}/cloud-provider-kind.pid")
 kill ${PID}
-timeout $timeout tail --pid=${PID} -f /dev/null || kill -9 ${PID}
+timeout 30 tail --pid=${PID} -f /dev/null || kill -9 ${PID}
 
 echo "##[group]cloud-provider-kind logs"
   cat "${work_dir}/cloud-provider-kind.log"
