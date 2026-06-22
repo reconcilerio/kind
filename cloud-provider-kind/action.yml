@@ -22,7 +22,7 @@ runs:
         echo "version=${version}" >> "${GITHUB_OUTPUT}"
       shell: bash
     - name: Install cloud-provider-kind
-      uses: scothis/install-kind-action/cloud-provider-kind@cloud-provider-kind
+      uses: reconcilerio/install-kind-action/cloud-provider-kind@v1
       with:
         version: "${{ steps.cloud-provider-kind-version.outputs.version }}"
     - name: Run cloud-provider-kind in background
