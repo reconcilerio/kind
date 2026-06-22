@@ -295,6 +295,7 @@ jobs:
         EOF
 
           kubectl wait deployments.apps/test --for condition=available --timeout 1m
+          kubectl wait service/test --for=jsonpath='{.status.loadBalancer.ingress}' --timeout 1m
           ingress_ip=$(kubectl get svc test -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
           value=$(curl -s http://${ingress_ip}/bench)
