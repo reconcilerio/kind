@@ -240,8 +240,8 @@ jobs:
         kubernetes-version: ${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}
         registry: ${{ steps.registry.outputs.registry }}
         registry-ca: ${{ steps.registry.outputs.tls-ca }}
-    - name: cluster-provider-kind
-      uses: ./cluster-provider-kind/
+    - name: cloud-provider-kind
+      uses: ./cloud-provider-kind/
     - name: Run a pod
       run: |
         set -euo pipefail
