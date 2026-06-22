@@ -23,11 +23,12 @@ runs:
       shell: bash
     - name: Install cloud-provider-kind
       uses: reconcilerio/go-install-action@v1
+      id: install
       with:
         package: sigs.k8s.io/cloud-provider-kind
         version: "${{ steps.cloud-provider-kind-version.outputs.version }}"
     - name: Run cloud-provider-kind in background
       uses: reconcilerio/post-step-action@v1
       with:
-        main: ${{ github.action_path }}/../scripts/start-cloud-provider-kind.sh
+        main: ${{ github.action_path }}/../scripts/start-cloud-provider-kind.sh ${{ steps.install.outputs.path }}
         post: ${{ github.action_path }}/../scripts/stop-cloud-provider-kind.sh
