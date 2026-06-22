@@ -12,4 +12,4 @@ mkdir -p "${work_dir}"
 echo "Starting cloud-provider-kind"
 cloud-provider-kind > "${work_dir}/cloud-provider-kind.log" 2>&1 &
 PID=$!
-echo "${PID}" > cloud-provider-kind.pid
+echo "${PID}" > "${work_dir}/cloud-provider-kind.pid"

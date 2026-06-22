@@ -240,12 +240,8 @@ jobs:
         kubernetes-version: ${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}
         registry: ${{ steps.registry.outputs.registry }}
         registry-ca: ${{ steps.registry.outputs.tls-ca }}
-    - name: Cluster info
-      run: |
-        set -euo pipefail
-
-        echo "cluster context: ${{ steps.cluster.outputs.context }}"
-        echo "kubernetes version: ${{ steps.cluster.outputs.kubernetes-version }}"
+    - name: cluster-provider-kind
+      uses: ./cluster-provider-kind/
     - name: Run a pod
       run: |
         set -euo pipefail
