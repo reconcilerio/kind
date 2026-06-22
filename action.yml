@@ -71,8 +71,7 @@ runs:
         main: ${{ github.action_path }}/scripts/start-cluster.sh "${{ inputs.cluster-name || 'kind' }}" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"
         post: ${{ github.action_path }}/scripts/stop-cluster.sh "${{ inputs.cluster-name || 'kind' }}"
     - name: Cloud provider
-      id: provider
       if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
-      uses: ./cloud-provider-kind
+      uses: ${{ github.action_path }}/cloud-provider-kind/
       with:
         version: ${{ inputs.cloud-provider-kind-version }}
