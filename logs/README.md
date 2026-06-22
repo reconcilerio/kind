@@ -11,7 +11,7 @@ See [action.yml](action.yml)
 
 <!-- start usage -->
 ```yaml
-- uses: reconcilerio/registry@v1
+- uses: reconcilerio/kind/logs@v1
   with:
     # Optional cluster-name.
     # Name of kind cluster.
