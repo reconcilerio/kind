@@ -97,7 +97,6 @@ Images can be pushed to the registry (defined by `${{ steps.registry.outputs.reg
 - **`kubernetes-version`** running kubernetes version as reported by the cluster. Multi-node clusters will produce a new line separated list with an line for each control-plane node.
 
 ## Nested actions
-- [`reconcilerio/kind/cloud-provider-kind`](./cloud-provider-kind/) Install and run cloud-provider-kind
 - [`reconcilerio/kind/logs`](./logs/) Export and upload logs for a kind cluster
 
 ## Community

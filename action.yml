@@ -70,8 +70,28 @@ runs:
       with:
         main: ${{ github.action_path }}/scripts/start-cluster.sh "${{ inputs.cluster-name || 'kind' }}" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"
         post: ${{ github.action_path }}/scripts/stop-cluster.sh "${{ inputs.cluster-name || 'kind' }}"
-    - name: Cloud provider
+
+    # cloud-provider-kind steps
+    - name: Resolve cloud-provider-kind version
       if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
-      uses: ${{ github.action_path }}/cloud-provider-kind/
+      id: cloud-provider-kind-version
+      run: |
+        set -euo pipefail
+
+        version="${{ inputs.cloud-provider-kind-version }}"
+        if [[ "${version}" == "auto" ]] ; then
+          version="$(sed -n 's:require sigs.k8s.io/cloud-provider-kind ::p' "${{ github.action_path }}/../hack/cloud-provider-kind/go.mod")"
+        fi
+        echo "version=${version}" >> "${GITHUB_OUTPUT}"
+      shell: bash
+    - name: Install cloud-provider-kind
+      if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
+      uses: reconcilerio/install-kind-action/cloud-provider-kind@v1
       with:
-        version: ${{ inputs.cloud-provider-kind-version }}
+        version: "${{ steps.cloud-provider-kind-version.outputs.version }}"
+    - name: Run cloud-provider-kind in background
+      if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
+      uses: reconcilerio/post-step-action@v1
+      with:
+        main: ${{ github.action_path }}/../scripts/start-cloud-provider-kind.sh
+        post: ${{ github.action_path }}/../scripts/stop-cloud-provider-kind.sh
