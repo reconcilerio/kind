@@ -246,7 +246,7 @@ jobs:
       run: |
         set -euo pipefail
 
-        image="busybox"
+        image="traefik/whoami"
         registry="${{ steps.registry.outputs.registry }}"
         if [[ "${registry}" != "" ]] ; then
           echo "##[group]copy image into local registry"
@@ -256,7 +256,54 @@ jobs:
         fi
 
         echo "##[group]run image"
-          kubectl run get-env --image="${image}" -it --restart=Never -- env
+          cat <<EOF | kubectl apply -f -
+        ---
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: test
+          labels:
+            app: test
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: test
+          template:
+            metadata:
+              labels:
+                app: test
+            spec:
+              containers:
+              - name: test
+                image: ${image}
+                ports:
+                - containerPort: 80
+        
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: test
+        spec:
+          type: LoadBalancer
+          selector:
+            app: test
+          ports:
+          - port: 80
+        
+        EOF
+
+          kubectl wait deployments.apps/test --for condition=available --timeout 1m
+          ingress_ip=$(kubectl get svc test -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+          value=$(curl -s http://${ingress_ip}/bench)
+          if [ "${value}" == "1" ]; then
+            echo "/bench: ${value}"
+          else
+            echo "Unexpected /bench: got ${value}, wanted 1"
+            exit 1
+          fi
         echo "##[endgroup]"
     - name: Collect logs
       if: always()
