@@ -1,0 +1,33 @@
+name: kind cloud provider
+description: Install and run cloud-provider-kind
+branding:
+  icon: refresh-cw
+  color: green
+inputs:
+  version:
+    description: Version of cloud-provider-kind to use.
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve cloud-provider-kind version
+      id: cloud-provider-kind-version
+      run: |
+        set -euo pipefail
+
+        version="${{ inputs.cloud-provider-kind-version }}"
+        if [[ "${version}" == "" ]] ; then
+          version="$(sed -n 's:require sigs.k8s.io/cloud-provider-kind ::p' "${{ github.action_path }}/../hack/cloud-provider-kind/go.mod")"
+        fi
+        echo "version=${version}" >> "${GITHUB_OUTPUT}"
+      shell: bash
+    - name: Install cloud-provider-kind
+      uses: reconcilerio/go-install-action@v1
+      with:
+        package: sigs.k8s.io/cloud-provider-kind
+        version: "${{ steps.cloud-provider-kind-version.outputs.version }}"
+    - name: Run cloud-provider-kind in background
+      uses: reconcilerio/post-step-action@v1
+      with:
+        main: ${{ github.action_path }}/../scripts/start-cloud-provider-kind.sh
+        post: ${{ github.action_path }}/../scripts/stop-cloud-provider-kind.sh

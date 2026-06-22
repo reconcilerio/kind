@@ -7,7 +7,7 @@ image="${2}"
 registry="${3}"
 registry_ca="${4}"
 
-work_dir="${RUNNER_TEMP}/reconcilerio/kind/${name}"
+work_dir="${RUNNER_TEMP}/reconcilerio/kind/clusters/${name}"
 if [ -d  "${work_dir}" ] ; then
     echo "::error title=duplicate kind cluster::another cluster with the name \"${name}\" appears to be in use"
     exit 1

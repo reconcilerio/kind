@@ -9,6 +9,10 @@ updates:
   schedule:
     interval: daily
 - package-ecosystem: gomod
+  directory: "/hack/cloud-provider-kind"
+  schedule:
+    interval: daily
+- package-ecosystem: gomod
   directory: "/hack/kubernetes"
   schedule:
     interval: daily
