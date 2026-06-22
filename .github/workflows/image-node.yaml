@@ -238,10 +238,9 @@ jobs:
       with:
         cluster-name: ${{ matrix.cluster-name }}
         kubernetes-version: ${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}
+        cloud-provider-kind-version: auto
         registry: ${{ steps.registry.outputs.registry }}
         registry-ca: ${{ steps.registry.outputs.tls-ca }}
-    - name: cloud-provider-kind
-      uses: ./cloud-provider-kind/
     - name: Run a pod
       run: |
         set -euo pipefail

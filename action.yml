@@ -11,6 +11,10 @@ inputs:
   kind-version:
     description: Version of kind to use.
     type: string
+  cloud-provider-kind-version:
+    description: Version of cloud-provider-kind to use. Use 'disabled' to disable the provider, 'auto' to use the latest tested version, 'latest' to use the latest released version, or any other release tag or git ref to consume that version.
+    type: string
+    default: disabled
   kubernetes-version:
     description: Version of Kubernetes to use. Resolves to a tag for the Kubernetes node image in the ghcr.io/reconcilerio/kind/node repository. May also be specified as a fully qualified image.
     type: string
@@ -66,3 +70,9 @@ runs:
       with:
         main: ${{ github.action_path }}/scripts/start-cluster.sh "${{ inputs.cluster-name || 'kind' }}" "${{ steps.kubernetes-version.outputs.version }}" "${{ inputs.registry }}" "${{ inputs.registry-ca }}"
         post: ${{ github.action_path }}/scripts/stop-cluster.sh "${{ inputs.cluster-name || 'kind' }}"
+    - name: Cloud provider
+      id: provider
+      if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
+      uses: ./cloud-provider-kind
+      with:
+        version: ${{ inputs.cloud-provider-kind-version }}

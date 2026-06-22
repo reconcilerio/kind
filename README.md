@@ -32,6 +32,11 @@ See [action.yml](action.yml)
     # Default: latest stable
     kind-version: ''
 
+    # Optional cloud-provider-kind-version.
+    # Version of cloud-provider-kind to use. Use 'disabled' to disable the provider, 'auto' to use the latest tested version, 'latest' to use the latest released version, or any other release tag or git ref to consume that version.
+    # Default: disabled
+    cloud-provider-kind-version: ''
+
     # Optional kubernetes-version.
     # Version of Kubernetes for the cluster. May be a tag that resolves to an image in the ghcr.io/reconcilerio/kind/node repository, or a fully qualified image. Tags match upstream kubernetes release versions, typically matching `v{MAJOR}.{MINOR}.{PATCH}` with an alias of `v{MAJOR.{MINOR}` to the latest patch for the minor line.
     # For example 'v1.33' maps to 'v1.33.11' and the fully qualified image 'ghcr.io/reconcilerio/kind/node:v1.33.11'.
@@ -57,6 +62,17 @@ steps:
 ```
 
 Starts a kind cluster with a recent, stable Kubernetes.
+
+**With cloud provider**
+
+```yaml
+steps:
+- uses: reconcilerio/kind@v1
+  with:
+    cloud-provider-kind-version: auto
+```
+
+Starts a kind cluster with a recent, stable [cloud-provider-kind](https://kubernetes-sigs.github.io/cloud-provider-kind/). The cloud provider is disabled by default as it only needs a single instance on the host to support multiple kind clusters.
 
 **With registry:**
 
