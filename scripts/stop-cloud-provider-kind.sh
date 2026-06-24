@@ -2,15 +2,11 @@
 
 set -euo pipefail
 
-work_dir="${RUNNER_TEMP}/reconcilerio/kind/cloud-provider-kind"
-
 echo "Stopping cloud-provider-kind"
-PID=$(cat "${work_dir}/cloud-provider-kind.pid")
-kill ${PID} || echo "cloud-provider-kind was not running"
-timeout 30 tail --pid=${PID} -f /dev/null || kill -9 ${PID}
+docker stop cloud-provider-kind
 
 echo "##[group]cloud-provider-kind logs"
-  cat "${work_dir}/cloud-provider-kind.log"
+  docker logs cloud-provider-kind
 echo "##[endgroup]"
 
-rm -rfv "${work_dir}"
+docker rm cloud-provider-kind

@@ -84,14 +84,9 @@ runs:
         fi
         echo "version=${version}" >> "${GITHUB_OUTPUT}"
       shell: bash
-    - name: Install cloud-provider-kind
-      if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
-      uses: reconcilerio/install-kind-action/cloud-provider-kind@v1
-      with:
-        version: "${{ steps.cloud-provider-kind-version.outputs.version }}"
     - name: Run cloud-provider-kind in background
       if: ${{ inputs.cloud-provider-kind-version != 'disabled' && inputs.cloud-provider-kind-version != '' }}
       uses: reconcilerio/post-step-action@v1
       with:
-        main: ${{ github.action_path }}/scripts/start-cloud-provider-kind.sh
+        main: ${{ github.action_path }}/scripts/start-cloud-provider-kind.sh "${{ steps.cloud-provider-kind-version.outputs.version }}"
         post: ${{ github.action_path }}/scripts/stop-cloud-provider-kind.sh
