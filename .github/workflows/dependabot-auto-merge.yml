@@ -1,27 +1,18 @@
-# derived from https://github.com/dependabot/fetch-metadata/tree/main#enabling-auto-merge
 name: Dependabot auto-merge
 
 on:
   push:
     branches:
-    - 'dependabot/**'
-
-permissions:
-  contents: write
-  pull-requests: write
+    - 'dependabot/go_modules/versions/kubernetes/v**'
 
 jobs:
   dependabot:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]' && github.repository == 'reconcilerio/kind'
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v3
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Set PR to auto-merge
-        if: steps.metadata.outputs.update-type == 'version-update:semver-patch' && steps.metadata.outputs.dependency-name == 'k8s.io/kubectl'
         run: gh pr merge --auto --squash ${{ github.ref_name }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # since new GitHub Action workflows are not triggered by existing workflows,
+          # use custom PAT so the resulting merge commit triggers the push workflow
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

@@ -5,119 +5,119 @@ updates:
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kind"
+  directory: "/versions/kind"
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/cloud-provider-kind"
+  directory: "/versions/cloud-provider-kind"
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes"
+  directory: "/versions/kubernetes/default"
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.37"
+  directory: "/versions/kubernetes/v1.37"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.36"
+  directory: "/versions/kubernetes/v1.36"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.35"
+  directory: "/versions/kubernetes/v1.35"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.34"
+  directory: "/versions/kubernetes/v1.34"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.33"
+  directory: "/versions/kubernetes/v1.33"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.32"
+  directory: "/versions/kubernetes/v1.32"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.31"
+  directory: "/versions/kubernetes/v1.31"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.30"
+  directory: "/versions/kubernetes/v1.30"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.29"
+  directory: "/versions/kubernetes/v1.29"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.28"
+  directory: "/versions/kubernetes/v1.28"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.27"
+  directory: "/versions/kubernetes/v1.27"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.26"
+  directory: "/versions/kubernetes/v1.26"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.25"
+  directory: "/versions/kubernetes/v1.25"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.24"
+  directory: "/versions/kubernetes/v1.24"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
 - package-ecosystem: gomod
-  directory: "/hack/kubernetes-1.23"
+  directory: "/versions/kubernetes/v1.23"
   allow:
-  - dependency-name: "*"
+  - dependency-name: "k8s.io/kubectl"
     update-types: ["version-update:semver-patch"]
   schedule:
     interval: daily
