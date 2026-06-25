@@ -58,6 +58,7 @@ jobs:
           - '.github/**'
           - 'action.yml'
           - 'logs/action.yml'
+          - 'versions/cloud-provider-kind/**'
           - 'versions/kind/**'
           kubernetes:
           - 'versions/kubernetes/default/**'
