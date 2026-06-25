@@ -19,6 +19,11 @@ on:
         description: kubernetes version to use
         required: true
         type: string
+      cloud-provider-kind-version:
+        description: cloud-provider-kind version to use
+        required: true
+        type: string
+        default: "auto"
       repository:
         description: nested image repository to publish into
         type: string
@@ -238,7 +243,7 @@ jobs:
       with:
         cluster-name: ${{ matrix.cluster-name }}
         kubernetes-version: ${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}
-        cloud-provider-kind-version: auto
+        cloud-provider-kind-version: ${{ inputs.cloud-provider-kind-version }}
         registry: ${{ steps.registry.outputs.registry }}
         registry-ca: ${{ steps.registry.outputs.tls-ca }}
     - name: Run a pod

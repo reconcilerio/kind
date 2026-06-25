@@ -112,41 +112,49 @@ jobs:
             ${{ needs.preflight.outputs['kubernetes-1.31'] }}
             v1.31
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.30'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.30'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.30'] }}
             v1.30
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.29'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.29'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.29'] }}
             v1.29
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.28'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.28'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.28'] }}
             v1.28
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.27'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.27'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.27'] }}
             v1.27
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.26'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.26'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.26'] }}
             v1.26
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.25'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.25'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.25'] }}
             v1.25
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.24'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.24'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.24'] }}
             v1.24
         - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.23'] }}
+          cloud-provider-kind-version: v0.10.0
           tag: ${{ needs.preflight.outputs['kubernetes-1.23'] }}-${{ needs.preflight.outputs.kind-version }}
           additional-tags: |
             ${{ needs.preflight.outputs['kubernetes-1.23'] }}
@@ -157,6 +165,7 @@ jobs:
       kind-base-artifact-name: "${{ needs.base.outputs.artifact-name }}"
       kind-base-digest: "${{ needs.base.outputs.digest }}"
       kubernetes-version: "${{ matrix.kubernetes-version }}"
+      cloud-provider-kind-version: "${{ matrix.cloud-provider-kind-version || 'auto' }}"
       tag: "${{ matrix.tag }}"
       additional-tags: "${{ matrix.additional-tags }}"
       publish: ${{ github.ref == 'refs/heads/main' }}

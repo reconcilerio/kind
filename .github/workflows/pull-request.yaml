@@ -160,27 +160,35 @@ jobs:
           force: ${{ needs.preflight.outputs['kubernetes-1.31-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.30'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.30'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.30-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.29'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.29'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.29-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.28'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.28'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.28-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.27'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.27'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.27-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.26'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.26'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.26-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.25'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.25'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.25-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.24'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.24'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.24-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
         - tag: ${{ needs.preflight.outputs['kubernetes-1.23'] }}-${{ needs.preflight.outputs.kind-version}}
           kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.23'] }}
+          cloud-provider-kind-version: v0.10.0
           force: ${{ needs.preflight.outputs['kubernetes-1.23-changed'] == 'true' || needs.preflight.outputs.commons-changed == 'true' }}
     uses: ./.github/workflows/image-node.yaml
     with:
@@ -188,6 +196,7 @@ jobs:
       kind-base-artifact-name: "${{ needs.base.outputs.artifact-name }}"
       kind-base-digest: "${{ needs.base.outputs.digest }}"
       kubernetes-version: "${{ matrix.kubernetes-version }}"
+      cloud-provider-kind-version: "${{ matrix.cloud-provider-kind-version || 'auto' }}"
       tag: "${{ matrix.tag }}"
       publish: false
       force: ${{ matrix.force }}
