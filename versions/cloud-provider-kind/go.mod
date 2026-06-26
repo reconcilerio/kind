@@ -2,7 +2,7 @@ module reconciler.io/kind/versions/cloud-provider-kind
 
 go 1.26.0
 
-require sigs.k8s.io/cloud-provider-kind v0.11.0
+require sigs.k8s.io/cloud-provider-kind v0.11.1
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
