@@ -1,123 +1,163 @@
 version: 2
 updates:
-- package-ecosystem: github-actions
-  directory: "/"
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kind"
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/cloud-provider-kind"
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/default"
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.37"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.36"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.35"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.34"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.33"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.32"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.31"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.30"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.29"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.28"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.27"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.26"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.25"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.24"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
-- package-ecosystem: gomod
-  directory: "/versions/kubernetes/v1.23"
-  allow:
-  - dependency-name: "k8s.io/kubectl"
-    update-types: ["version-update:semver-patch"]
-  schedule:
-    interval: daily
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kind"
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/cloud-provider-kind"
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/default"
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.37"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: cron
+      cronjob: 0 * * * *
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.36"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: cron
+      cronjob: 0 * * * *
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.35"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: cron
+      cronjob: 0 * * * *
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.34"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: cron
+      cronjob: 0 * * * *
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.33"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.32"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.31"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.30"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.29"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.28"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.27"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.26"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.25"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.24"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.23"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      exclude: ["*"]
+    schedule:
+      interval: daily
