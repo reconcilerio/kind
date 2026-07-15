@@ -61,30 +61,29 @@ concurrency:
 env:
   artifact-name: "kind-node-${{ inputs.tag }}-${{ inputs.id || '0'}}"
   repository: "${{
-      case(inputs.repository == '',
-        format('ghcr.io/{0}/node', github.repository),
-        format('ghcr.io/{0}/node/{1}', github.repository, inputs.repository)
-      )
+    case(inputs.repository == '',
+    format('ghcr.io/{0}/node', github.repository),
+    format('ghcr.io/{0}/node/{1}', github.repository, inputs.repository)
+    )
     }}"
 
 jobs:
-
   preflight:
     name: Preflight
     runs-on: ubuntu-latest
     outputs:
       existing-digest: ${{ steps.existing.outputs.digest }}
     steps:
-    - uses: actions/checkout@v7
-    - name: Install crane
-      uses: reconcilerio/install-crane-action@v1
-    - name: Check for existing image
-      id: existing
-      run: |
-        set -euo pipefail
+      - uses: actions/checkout@v7
+      - name: Install crane
+        uses: reconcilerio/install-crane-action@v1
+      - name: Check for existing image
+        id: existing
+        run: |
+          set -euo pipefail
 
-        digest="$(crane digest "${{ env.repository }}:${{ inputs.tag }}" || echo -n '')"
-        echo "digest=${digest}" | tee -a "${GITHUB_OUTPUT}"
+          digest="$(crane digest "${{ env.repository }}:${{ inputs.tag }}" || echo -n '')"
+          echo "digest=${digest}" | tee -a "${GITHUB_OUTPUT}"
 
   build:
     name: Build ${{ matrix.os }}/${{ matrix.arch }}
@@ -94,60 +93,60 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: linux
-          arch: amd64
-          runs-on: ubuntu-24.04
-        - os: linux
-          arch: arm64
-          runs-on: ubuntu-24.04-arm
+          - os: linux
+            arch: amd64
+            runs-on: ubuntu-24.04
+          - os: linux
+            arch: arm64
+            runs-on: ubuntu-24.04-arm
     runs-on: ${{ matrix.runs-on }}
     steps:
-    - uses: actions/checkout@v7
-    - name: Install crane
-      uses: reconcilerio/install-crane-action@v1
-    - name: Install kind
-      uses: reconcilerio/install-kind-action@v1
-      with:
-        version: ${{ inputs.kind-version }}
-    - name: OCI registry
-      id: registry
-      uses: reconcilerio/registry@v1
-    - name: Download base image
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{ inputs.kind-base-artifact-name }}"
-        path: "${{ inputs.kind-base-artifact-name }}"
-    - name: Push base image
-      run: |
-        crane push \
-          "${{ inputs.kind-base-artifact-name }}" \
-          "${{ steps.registry.outputs.registry }}/base@${{ inputs.kind-base-digest }}"
-    - name: Checkout kubernetes ${{ inputs.kubernetes-version }}
-      uses: actions/checkout@v7
-      with:
-        repository: kubernetes/kubernetes
-        path: kubernetes
-        ref: ${{ inputs.kubernetes-version }}
-    - name: Build kind ${{ matrix.arch }} node image
-      run: |
-        set -euo pipefail
+      - uses: actions/checkout@v7
+      - name: Install crane
+        uses: reconcilerio/install-crane-action@v1
+      - name: Install kind
+        uses: reconcilerio/install-kind-action@v1
+        with:
+          version: ${{ inputs.kind-version }}
+      - name: OCI registry
+        id: registry
+        uses: reconcilerio/registry@v1
+      - name: Download base image
+        uses: actions/download-artifact@v8
+        with:
+          name: "${{ inputs.kind-base-artifact-name }}"
+          path: "${{ inputs.kind-base-artifact-name }}"
+      - name: Push base image
+        run: |
+          crane push \
+            "${{ inputs.kind-base-artifact-name }}" \
+            "${{ steps.registry.outputs.registry }}/base@${{ inputs.kind-base-digest }}"
+      - name: Checkout kubernetes ${{ inputs.kubernetes-version }}
+        uses: actions/checkout@v7
+        with:
+          repository: kubernetes/kubernetes
+          path: kubernetes
+          ref: ${{ inputs.kubernetes-version }}
+      - name: Build kind ${{ matrix.arch }} node image
+        run: |
+          set -euo pipefail
 
-        kind build node-image ./kubernetes \
-          --arch ${{ matrix.arch }} \
-          --base-image "${{ steps.registry.outputs.registry }}/base@${{ inputs.kind-base-digest }}" \
-          --image "${{ steps.registry.outputs.registry }}/node" \
-          --type release
+          kind build node-image ./kubernetes \
+            --arch ${{ matrix.arch }} \
+            --base-image "${{ steps.registry.outputs.registry }}/base@${{ inputs.kind-base-digest }}" \
+            --image "${{ steps.registry.outputs.registry }}/node" \
+            --type release
 
-        docker push ${{ steps.registry.outputs.registry }}/node
+          docker push ${{ steps.registry.outputs.registry }}/node
 
-        crane pull --format oci \
-          "${{ steps.registry.outputs.registry }}/node" \
-          "${{ env.artifact-name }}-${{ matrix.arch }}"
-    - uses: actions/upload-artifact@v7
-      with:
-        name: "${{ env.artifact-name }}-${{ matrix.arch }}"
-        path: "${{ env.artifact-name }}-${{ matrix.arch }}"
-        retention-days: 7
+          crane pull --format oci \
+            "${{ steps.registry.outputs.registry }}/node" \
+            "${{ env.artifact-name }}-${{ matrix.arch }}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: "${{ env.artifact-name }}-${{ matrix.arch }}"
+          path: "${{ env.artifact-name }}-${{ matrix.arch }}"
+          retention-days: 7
 
   assemble:
     name: Assemble
@@ -158,244 +157,245 @@ jobs:
       digest-amd64: ${{ steps.assemble.outputs.digest-amd64 }}
       digest-arm64: ${{ steps.assemble.outputs.digest-arm64 }}
     steps:
-    - uses: actions/checkout@v7
-    - name: Install crane
-      uses: reconcilerio/install-crane-action@v1
-    - name: OCI registry
-      id: registry
-      uses: reconcilerio/registry@v1
-    - name: Download staged image amd64
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{ env.artifact-name }}-amd64"
-        path: "${{ env.artifact-name }}-amd64"
-    - name: Download staged image arm64
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{ env.artifact-name }}-arm64"
-        path: "${{ env.artifact-name }}-arm64"
-    - name: Assemble node image index
-      id: assemble
-      run: |
-        set -euo pipefail
+      - uses: actions/checkout@v7
+      - name: Install crane
+        uses: reconcilerio/install-crane-action@v1
+      - name: OCI registry
+        id: registry
+        uses: reconcilerio/registry@v1
+      - name: Download staged image amd64
+        uses: actions/download-artifact@v8
+        with:
+          name: "${{ env.artifact-name }}-amd64"
+          path: "${{ env.artifact-name }}-amd64"
+      - name: Download staged image arm64
+        uses: actions/download-artifact@v8
+        with:
+          name: "${{ env.artifact-name }}-arm64"
+          path: "${{ env.artifact-name }}-arm64"
+      - name: Assemble node image index
+        id: assemble
+        run: |
+          set -euo pipefail
 
-        crane push \
-          "${{ env.artifact-name }}-amd64" \
-          "${{ steps.registry.outputs.registry }}/node:amd64"
-        crane push \
-          "${{ env.artifact-name }}-arm64" \
-          "${{ steps.registry.outputs.registry }}/node:arm64"
+          crane push \
+            "${{ env.artifact-name }}-amd64" \
+            "${{ steps.registry.outputs.registry }}/node:amd64"
+          crane push \
+            "${{ env.artifact-name }}-arm64" \
+            "${{ steps.registry.outputs.registry }}/node:arm64"
 
-        crane index append \
-          -m ${{ steps.registry.outputs.registry }}/node:amd64 \
-          -m ${{ steps.registry.outputs.registry }}/node:arm64 \
-          -t ${{ steps.registry.outputs.registry }}/node
+          crane index append \
+            -m ${{ steps.registry.outputs.registry }}/node:amd64 \
+            -m ${{ steps.registry.outputs.registry }}/node:arm64 \
+            -t ${{ steps.registry.outputs.registry }}/node
 
-        echo "digest=$(crane digest "${{ steps.registry.outputs.registry }}/node")" | tee -a "${GITHUB_OUTPUT}"
-        echo "digest-amd64=$(crane digest "${{ steps.registry.outputs.registry }}/node:amd64")" | tee -a "${GITHUB_OUTPUT}"
-        echo "digest-arm64=$(crane digest "${{ steps.registry.outputs.registry }}/node:arm64")" | tee -a "${GITHUB_OUTPUT}"
+          echo "digest=$(crane digest "${{ steps.registry.outputs.registry }}/node")" | tee -a "${GITHUB_OUTPUT}"
+          echo "digest-amd64=$(crane digest "${{ steps.registry.outputs.registry }}/node:amd64")" | tee -a "${GITHUB_OUTPUT}"
+          echo "digest-arm64=$(crane digest "${{ steps.registry.outputs.registry }}/node:arm64")" | tee -a "${GITHUB_OUTPUT}"
 
-        crane pull --format oci \
-          "${{ steps.registry.outputs.registry }}/node" \
-          "${{ env.artifact-name }}"
-    - uses: actions/upload-artifact@v7
-      with:
-        name: "${{ env.artifact-name }}"
-        path: "${{ env.artifact-name }}"
-        retention-days: 7
-  
+          crane pull --format oci \
+            "${{ steps.registry.outputs.registry }}/node" \
+            "${{ env.artifact-name }}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: "${{ env.artifact-name }}"
+          path: "${{ env.artifact-name }}"
+          retention-days: 7
+
   test:
-    name: Test
+    name: Test (${{ matrix.os }}/${{ matrix.arch }})
     needs: assemble
-    runs-on: ubuntu-latest
-    outputs:
-      digest: ${{ steps.digests.outputs.digest }}
-      digest-amd64: ${{ steps.digests.outputs.digest-amd64 }}
-      digest-arm64: ${{ steps.digests.outputs.digest-arm64 }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            runs-on: ubuntu-24.04
+          - os: linux
+            arch: arm64
+            runs-on: ubuntu-24.04-arm
     steps:
-    - uses: actions/checkout@v7
-    - name: Install crane
-      uses: reconcilerio/install-crane-action@v1
-    - name: OCI registry
-      id: registry
-      uses: reconcilerio/registry@v1
-    - name: Download staged image
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{ env.artifact-name }}"
-        path: "${{ env.artifact-name }}"
-    - name: Image digests
-      id: digests
-      run: |
-        echo "digest=${{ needs.assemble.outputs.digest }}" | tee -a "${GITHUB_OUTPUT}"
-        echo "digest-amd64=${{ needs.assemble.outputs.digest-amd64 }}" | tee -a "${GITHUB_OUTPUT}"
-        echo "digest-arm64=${{ needs.assemble.outputs.digest-arm64 }}" | tee -a "${GITHUB_OUTPUT}"
-    - name: Push node image index
-      run: |
-        set -euo pipefail
+      - uses: actions/checkout@v7
+      - name: Install crane
+        uses: reconcilerio/install-crane-action@v1
+      - name: OCI registry
+        id: registry
+        uses: reconcilerio/registry@v1
+      - name: Download staged image
+        uses: actions/download-artifact@v8
+        with:
+          name: "${{ env.artifact-name }}"
+          path: "${{ env.artifact-name }}"
+      - name: Push node image index
+        run: |
+          set -euo pipefail
 
-        crane push \
-          "${{ env.artifact-name }}" \
-          "${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}"
-    - name: kind cluster
-      id: cluster
-      uses: ./
-      with:
-        cluster-name: ${{ matrix.cluster-name }}
-        kubernetes-version: ${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}
-        cloud-provider-kind-version: ${{ inputs.cloud-provider-kind-version }}
-        registry: ${{ steps.registry.outputs.registry }}
-        registry-ca: ${{ steps.registry.outputs.tls-ca }}
-    - name: Run a pod
-      run: |
-        set -euo pipefail
+          crane push \
+            "${{ env.artifact-name }}" \
+            "${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}"
+      - name: kind cluster
+        id: cluster
+        uses: ./
+        with:
+          kubernetes-version: ${{ steps.registry.outputs.registry }}/node@${{ needs.assemble.outputs.digest }}
+          cloud-provider-kind-version: ${{ inputs.cloud-provider-kind-version }}
+          registry: ${{ steps.registry.outputs.registry }}
+          registry-ca: ${{ steps.registry.outputs.tls-ca }}
+      - name: Run a pod
+        run: |
+          set -euo pipefail
 
-        image="traefik/whoami"
-        registry="${{ steps.registry.outputs.registry }}"
-        if [[ "${registry}" != "" ]] ; then
-          echo "##[group]copy image into local registry"
-            crane copy "${image}" "${registry}/test/${image}"
-            image="${registry}/test/${image}"
-          echo "##[endgroup]"
-        fi
-
-        echo "##[group]run image"
-          cat <<EOF | kubectl apply -f -
-        ---
-        apiVersion: apps/v1
-        kind: Deployment
-        metadata:
-          name: test
-          labels:
-            app: test
-        spec:
-          replicas: 1
-          selector:
-            matchLabels:
-              app: test
-          template:
-            metadata:
-              labels:
-                app: test
-            spec:
-              containers:
-              - name: test
-                image: ${image}
-                ports:
-                - containerPort: 80
-        
-        ---
-        apiVersion: v1
-        kind: Service
-        metadata:
-          name: test
-        spec:
-          type: LoadBalancer
-          selector:
-            app: test
-          ports:
-          - port: 80
-        
-        EOF
-
-          kubectl wait deployments.apps/test --for condition=available --timeout 1m
-          kubectl wait service/test --for=jsonpath='{.status.loadBalancer.ingress}' --timeout 1m
-          ingress_ip=$(kubectl get svc test -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
-
-          value=$(curl -s http://${ingress_ip}/bench)
-          if [ "${value}" == "1" ]; then
-            echo "/bench: ${value}"
-          else
-            echo "Unexpected /bench: got ${value}, wanted 1"
-            exit 1
+          image="traefik/whoami"
+          registry="${{ steps.registry.outputs.registry }}"
+          if [[ "${registry}" != "" ]] ; then
+            echo "##[group]copy image into local registry"
+              crane copy "${image}" "${registry}/test/${image}"
+              image="${registry}/test/${image}"
+            echo "##[endgroup]"
           fi
-        echo "##[endgroup]"
-    - name: Collect logs
-      if: always()
-      uses: ./logs
-      with:
-        artifact-name: "kind-logs-${{ inputs.kubernetes-version }}"
+
+          echo "##[group]run image"
+            cat <<EOF | kubectl apply -f -
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: test
+            labels:
+              app: test
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: test
+            template:
+              metadata:
+                labels:
+                  app: test
+              spec:
+                containers:
+                - name: test
+                  image: ${image}
+                  ports:
+                  - containerPort: 80
+
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: test
+          spec:
+            type: LoadBalancer
+            selector:
+              app: test
+            ports:
+            - port: 80
+
+          EOF
+
+            kubectl wait deployments.apps/test --for condition=available --timeout 1m
+            kubectl wait service/test --for=jsonpath='{.status.loadBalancer.ingress}' --timeout 1m
+            ingress_ip=$(kubectl get svc test -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+            value=$(curl -s http://${ingress_ip}/bench)
+            if [ "${value}" == "1" ]; then
+              echo "/bench: ${value}"
+            else
+              echo "Unexpected /bench: got ${value}, wanted 1"
+              exit 1
+            fi
+          echo "##[endgroup]"
+      - name: Collect logs
+        if: always()
+        uses: ./logs
+        with:
+          artifact-name: "kind-logs-${{ inputs.kubernetes-version }}-${{ matrix.os }}-${{ matrix.arch }}"
 
   publish:
     name: Publish
-    needs: test
+    needs:
+      - test
+      - assemble
     if: inputs.publish
     runs-on: ubuntu-latest
     permissions:
       packages: write
       id-token: write
     steps:
-    - uses: actions/checkout@v7
-    - name: Install crane
-      uses: reconcilerio/install-crane-action@v1
-    - name: Install cosign
-      uses: sigstore/cosign-installer@v4.1.2
-    - name: Download staged image
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{ env.artifact-name }}"
-        path: "${{ env.artifact-name }}"
-    - name: Download staged image amd64
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{ env.artifact-name }}-amd64"
-        path: "${{ env.artifact-name }}-amd64"
-    - name: Download staged image arm64
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{ env.artifact-name }}-arm64"
-        path: "${{ env.artifact-name }}-arm64"
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Push
-      run: |
-        set -euo pipefail
+      - uses: actions/checkout@v7
+      - name: Install crane
+        uses: reconcilerio/install-crane-action@v1
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+      - name: Download staged image
+        uses: actions/download-artifact@v8
+        with:
+          name: "${{ env.artifact-name }}"
+          path: "${{ env.artifact-name }}"
+      - name: Download staged image amd64
+        uses: actions/download-artifact@v8
+        with:
+          name: "${{ env.artifact-name }}-amd64"
+          path: "${{ env.artifact-name }}-amd64"
+      - name: Download staged image arm64
+        uses: actions/download-artifact@v8
+        with:
+          name: "${{ env.artifact-name }}-arm64"
+          path: "${{ env.artifact-name }}-arm64"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push
+        run: |
+          set -euo pipefail
 
-        crane push \
-          "${{ env.artifact-name }}" \
-          "${{ env.repository }}@${{ needs.test.outputs.digest }}"
-        crane push \
-          "${{ env.artifact-name }}-amd64" \
-          "${{ env.repository }}@${{ needs.test.outputs.digest-amd64 }}"
-        crane push \
-          "${{ env.artifact-name }}-arm64" \
-          "${{ env.repository }}@${{ needs.test.outputs.digest-arm64 }}"
-    - name: Sign
-      run: |
-        set -euo pipefail
+          crane push \
+            "${{ env.artifact-name }}" \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest }}"
+          crane push \
+            "${{ env.artifact-name }}-amd64" \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest-amd64 }}"
+          crane push \
+            "${{ env.artifact-name }}-arm64" \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest-arm64 }}"
+      - name: Sign
+        run: |
+          set -euo pipefail
 
-        cosign sign --yes \
-          "${{ env.repository }}@${{ needs.test.outputs.digest }}"
-        cosign sign --yes \
-          "${{ env.repository }}@${{ needs.test.outputs.digest-amd64 }}"
-        cosign sign --yes \
-          "${{ env.repository }}@${{ needs.test.outputs.digest-arm64 }}"
-    - name: Additional tags
-      if: inputs.additional-tags
-      run: |
-        set -euo pipefail
+          cosign sign --yes \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest }}"
+          cosign sign --yes \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest-amd64 }}"
+          cosign sign --yes \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest-arm64 }}"
+      - name: Additional tags
+        if: inputs.additional-tags
+        run: |
+          set -euo pipefail
 
-        additional_tags="$(echo "${{ inputs.additional-tags }}" | awk '{$1=$1};1' | grep -v -e "^$")"
+          additional_tags="$(echo "${{ inputs.additional-tags }}" | awk '{$1=$1};1' | grep -v -e "^$")"
 
-        while IFS= read -r tag; do
+          while IFS= read -r tag; do
+            crane tag \
+              "${{ env.repository }}@${{ needs.assemble.outputs.digest }}" \
+              "${tag}"
+          done <<< "${additional_tags}"
+      - name: Primary tag
+        run: |
+          set -euo pipefail
+
           crane tag \
-            "${{ env.repository }}@${{ needs.test.outputs.digest }}" \
-            "${tag}"
-        done <<< "${additional_tags}"
-    - name: Primary tag
-      run: |
-        set -euo pipefail
-
-        crane tag \
-          "${{ env.repository }}@${{ needs.test.outputs.digest-amd64 }}" \
-          "${{ inputs.tag }}-amd64"
-        crane tag \
-          "${{ env.repository }}@${{ needs.test.outputs.digest-arm64 }}" \
-          "${{ inputs.tag }}-arm64"
-        crane tag \
-          "${{ env.repository }}@${{ needs.test.outputs.digest }}" \
-          "${{ inputs.tag }}"
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest-amd64 }}" \
+            "${{ inputs.tag }}-amd64"
+          crane tag \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest-arm64 }}" \
+            "${{ inputs.tag }}-arm64"
+          crane tag \
+            "${{ env.repository }}@${{ needs.assemble.outputs.digest }}" \
+            "${{ inputs.tag }}"
