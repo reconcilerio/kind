@@ -3,13 +3,14 @@ name: Dependabot auto-merge
 on:
   push:
     branches:
-    - 'dependabot/go_modules/versions/kubernetes/v**'
+      - "dependabot/go_modules/versions/kubernetes/v**"
 
 jobs:
   dependabot:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]' && github.repository == 'reconcilerio/kind'
     steps:
+      - uses: actions/checkout@v7
       - name: Set PR to auto-merge
         run: gh pr merge --auto --squash ${{ github.ref_name }}
         env:
