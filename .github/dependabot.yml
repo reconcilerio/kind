@@ -7,18 +7,21 @@ updates:
   - package-ecosystem: gomod
     directory: "/versions/kind"
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
   - package-ecosystem: gomod
     directory: "/versions/cloud-provider-kind"
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
   - package-ecosystem: gomod
     directory: "/versions/kubernetes/default"
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -28,46 +31,47 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
-      interval: cron
-      cronjob: 0 * * * *
+      interval: daily
   - package-ecosystem: gomod
     directory: "/versions/kubernetes/v1.36"
     allow:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
-      interval: cron
-      cronjob: 0 * * * *
+      interval: daily
   - package-ecosystem: gomod
     directory: "/versions/kubernetes/v1.35"
     allow:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
-      interval: cron
-      cronjob: 0 * * * *
+      interval: daily
   - package-ecosystem: gomod
     directory: "/versions/kubernetes/v1.34"
     allow:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
-      interval: cron
-      cronjob: 0 * * * *
+      interval: daily
   - package-ecosystem: gomod
     directory: "/versions/kubernetes/v1.33"
     allow:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -77,6 +81,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -86,6 +91,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -95,6 +101,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -104,6 +111,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -113,6 +121,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -122,6 +131,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -131,6 +141,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -140,6 +151,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -149,6 +161,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
@@ -158,6 +171,7 @@ updates:
       - dependency-name: "k8s.io/kubectl"
         update-types: ["version-update:semver-patch"]
     cooldown:
+      default-days: 0
       exclude: ["*"]
     schedule:
       interval: daily
