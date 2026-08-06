@@ -3,17 +3,17 @@ name: Push
 on:
   push:
     branches:
-    - '**'
-    - '!dependabot/**'
+      - "**"
+      - "!dependabot/**"
 
 jobs:
-
   preflight:
     name: Preflight
     runs-on: ubuntu-latest
     outputs:
       kind-version: ${{ steps.kind.outputs.version }}
       kubernetes: ${{ steps.kubernetes.outputs.version }}
+      kubernetes-1.38: ${{ steps.kubernetes.outputs['1.38'] }}
       kubernetes-1.37: ${{ steps.kubernetes.outputs['1.37'] }}
       kubernetes-1.36: ${{ steps.kubernetes.outputs['1.36'] }}
       kubernetes-1.35: ${{ steps.kubernetes.outputs['1.35'] }}
@@ -30,26 +30,26 @@ jobs:
       kubernetes-1.24: ${{ steps.kubernetes.outputs['1.24'] }}
       kubernetes-1.23: ${{ steps.kubernetes.outputs['1.23'] }}
     steps:
-    - uses: actions/checkout@v7
-    - uses: actions/setup-go@v7
-      with:
-        go-version: stable
-    - name: Resolve kind version
-      id: kind
-      run: echo "version=$(go list -modfile versions/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "${GITHUB_OUTPUT}"
-      env:
-        GOTOOLCHAIN: auto
-    - name: Resolve kubernetes version
-      id: kubernetes
-      run: |
-        set -euo pipefail
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - name: Resolve kind version
+        id: kind
+        run: echo "version=$(go list -modfile versions/kind/go.mod -m -f '{{.Version}}' sigs.k8s.io/kind)" | tee -a "${GITHUB_OUTPUT}"
+        env:
+          GOTOOLCHAIN: auto
+      - name: Resolve kubernetes version
+        id: kubernetes
+        run: |
+          set -euo pipefail
 
-        echo "version=$(go list -modfile versions/kubernetes/default/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
-        for minor in {23..37}; do
-          echo "1.${minor}=$(go list -modfile versions/kubernetes/v1.${minor}/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
-        done
-      env:
-        GOTOOLCHAIN: auto
+          echo "version=$(go list -modfile versions/kubernetes/default/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+          for minor in {23..37}; do
+            echo "1.${minor}=$(go list -modfile versions/kubernetes/v1.${minor}/go.mod -m -f '{{.Version}}' k8s.io/kubectl | sed s/^v0\./v1\./)" | tee -a "${GITHUB_OUTPUT}"
+          done
+        env:
+          GOTOOLCHAIN: auto
 
   base:
     name: Base image ${{ needs.preflight.outputs.kind-version }}
@@ -74,91 +74,96 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes'] }}-${{ needs.preflight.outputs.kind-version }}
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.37'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes-1.37'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.37'] }}
-            v1.37
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.36'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes-1.36'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.36'] }}
-            v1.36
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.35'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes-1.35'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.35'] }}
-            v1.35
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.34'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes-1.34'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.34'] }}
-            v1.34
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.33'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes-1.33'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.33'] }}
-            v1.33
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.32'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes-1.32'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.32'] }}
-            v1.32
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.31'] }}
-          tag: ${{ needs.preflight.outputs['kubernetes-1.31'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.31'] }}
-            v1.31
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.30'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.30'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.30'] }}
-            v1.30
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.29'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.29'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.29'] }}
-            v1.29
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.28'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.28'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.28'] }}
-            v1.28
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.27'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.27'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.27'] }}
-            v1.27
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.26'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.26'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.26'] }}
-            v1.26
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.25'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.25'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.25'] }}
-            v1.25
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.24'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.24'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.24'] }}
-            v1.24
-        - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.23'] }}
-          cloud-provider-kind-version: v0.10.0
-          tag: ${{ needs.preflight.outputs['kubernetes-1.23'] }}-${{ needs.preflight.outputs.kind-version }}
-          additional-tags: |
-            ${{ needs.preflight.outputs['kubernetes-1.23'] }}
-            v1.23
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes'] }}-${{ needs.preflight.outputs.kind-version }}
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.38'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.38'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.38'] }}
+              v1.38
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.37'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.37'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.37'] }}
+              v1.37
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.36'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.36'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.36'] }}
+              v1.36
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.35'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.35'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.35'] }}
+              v1.35
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.34'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.34'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.34'] }}
+              v1.34
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.33'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.33'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.33'] }}
+              v1.33
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.32'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.32'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.32'] }}
+              v1.32
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.31'] }}
+            tag: ${{ needs.preflight.outputs['kubernetes-1.31'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.31'] }}
+              v1.31
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.30'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.30'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.30'] }}
+              v1.30
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.29'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.29'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.29'] }}
+              v1.29
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.28'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.28'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.28'] }}
+              v1.28
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.27'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.27'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.27'] }}
+              v1.27
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.26'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.26'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.26'] }}
+              v1.26
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.25'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.25'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.25'] }}
+              v1.25
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.24'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.24'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.24'] }}
+              v1.24
+          - kubernetes-version: ${{ needs.preflight.outputs['kubernetes-1.23'] }}
+            cloud-provider-kind-version: v0.10.0
+            tag: ${{ needs.preflight.outputs['kubernetes-1.23'] }}-${{ needs.preflight.outputs.kind-version }}
+            additional-tags: |
+              ${{ needs.preflight.outputs['kubernetes-1.23'] }}
+              v1.23
     uses: ./.github/workflows/image-node.yaml
     with:
       kind-version: "${{ needs.preflight.outputs.kind-version }}"
@@ -179,18 +184,18 @@ jobs:
     permissions:
       packages: write
     steps:
-    - uses: actions/checkout@v7
-    - name: Install crane
-      uses: reconcilerio/install-crane-action@v1
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Latest tag
-      run: |
-        crane tag \
-          "ghcr.io/${{ github.repository }}/node:${{ needs.preflight.outputs['kubernetes'] }}-${{ needs.preflight.outputs.kind-version }}" \
-          "latest"
-    - run: echo "That's all folks"
+      - uses: actions/checkout@v7
+      - name: Install crane
+        uses: reconcilerio/install-crane-action@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Latest tag
+        run: |
+          crane tag \
+            "ghcr.io/${{ github.repository }}/node:${{ needs.preflight.outputs['kubernetes'] }}-${{ needs.preflight.outputs.kind-version }}" \
+            "latest"
+      - run: echo "That's all folks"
