@@ -26,6 +26,16 @@ updates:
     schedule:
       interval: daily
   - package-ecosystem: gomod
+    directory: "/versions/kubernetes/v1.38"
+    allow:
+      - dependency-name: "k8s.io/kubectl"
+        update-types: ["version-update:semver-patch"]
+    cooldown:
+      default-days: 0
+      exclude: ["*"]
+    schedule:
+      interval: daily
+  - package-ecosystem: gomod
     directory: "/versions/kubernetes/v1.37"
     allow:
       - dependency-name: "k8s.io/kubectl"
