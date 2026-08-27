@@ -2,7 +2,7 @@ module reconciler.io/kind/versions/kind
 
 go 1.26.2
 
-require sigs.k8s.io/kind v0.32.0
+require sigs.k8s.io/kind v0.33.0
 
 require (
 	al.essio.dev/pkg/shellescape v1.5.1 // indirect
