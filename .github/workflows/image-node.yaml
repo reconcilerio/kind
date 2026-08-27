@@ -374,18 +374,6 @@ jobs:
             "${{ env.repository }}@${{ needs.assemble.outputs.digest-amd64 }}"
           cosign sign --yes \
             "${{ env.repository }}@${{ needs.assemble.outputs.digest-arm64 }}"
-      - name: Additional tags
-        if: inputs.additional-tags
-        run: |
-          set -euo pipefail
-
-          additional_tags="$(echo "${{ inputs.additional-tags }}" | awk '{$1=$1};1' | grep -v -e "^$")"
-
-          while IFS= read -r tag; do
-            crane tag \
-              "${{ env.repository }}@${{ needs.assemble.outputs.digest }}" \
-              "${tag}"
-          done <<< "${additional_tags}"
       - name: Primary tag
         run: |
           set -euo pipefail
@@ -399,3 +387,33 @@ jobs:
           crane tag \
             "${{ env.repository }}@${{ needs.assemble.outputs.digest }}" \
             "${{ inputs.tag }}"
+
+  tag:
+    name: Tag
+    needs: publish
+    if: always() && !failure() && !cancelled() && inputs.publish && inputs.additional-tags
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install crane
+        uses: reconcilerio/install-crane-action@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Additional tags
+        run: |
+          set -euo pipefail
+
+          additional_tags="$(echo "${{ inputs.additional-tags }}" | awk '{$1=$1};1' | grep -v -e "^$")"
+
+          while IFS= read -r tag; do
+            crane tag \
+              "${{ env.repository }}:${{ inputs.tag }}" \
+              "${tag}"
+          done <<< "${additional_tags}"
