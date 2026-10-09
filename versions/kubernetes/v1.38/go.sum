@@ -1,2 +1,2 @@
-k8s.io/kubectl v0.38.0-alpha.1 h1:/IiVPnD6vLAFR5lFQJ1PvgEnMBvwGNurJt24i5wPC1c=
-k8s.io/kubectl v0.38.0-alpha.1/go.mod h1:GGGBSeZNLEYSyGoFQDP1G6M9Rdh9RuBq9Ec2mA1SozU=
+k8s.io/kubectl v0.38.0-alpha.2 h1:+8bqR9o4cXPLQDthHf3LJEsGF73SQnaqWAcRLK6bqOk=
+k8s.io/kubectl v0.38.0-alpha.2/go.mod h1:kG2kYi3mm09BgvQU7hlgpCS6jp7Vh87daT6XBFkE0CU=
